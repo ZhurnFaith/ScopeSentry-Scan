@@ -10,11 +10,11 @@ package main
 //
 //import (
 //	"fmt"
-//	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/dirScanMode/core"
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/dirScanMode/runner"
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/system"
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/util"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/dirScanMode/core"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/dirScanMode/runner"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/system"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/util"
 //	"net/http"
 //	_ "net/http/pprof"
 //	"path/filepath"

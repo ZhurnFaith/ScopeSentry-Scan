@@ -10,7 +10,7 @@ package utils
 import (
 	"bytes"
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
 	"github.com/cckuailong/simHtml/simHtml"
 	"strconv"
 	"strings"

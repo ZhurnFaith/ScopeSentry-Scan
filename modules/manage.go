@@ -8,21 +8,21 @@
 package modules
 
 import (
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/interfaces"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/options"
-	"github.com/Autumn-27/ScopeSentry-Scan/modules/assethandle"
-	"github.com/Autumn-27/ScopeSentry-Scan/modules/assetmapping"
-	"github.com/Autumn-27/ScopeSentry-Scan/modules/dirscan"
-	"github.com/Autumn-27/ScopeSentry-Scan/modules/portfingerprint"
-	"github.com/Autumn-27/ScopeSentry-Scan/modules/portscan"
-	"github.com/Autumn-27/ScopeSentry-Scan/modules/portscanpreparation"
-	"github.com/Autumn-27/ScopeSentry-Scan/modules/subdomainscan"
-	"github.com/Autumn-27/ScopeSentry-Scan/modules/subdomainsecurity"
-	"github.com/Autumn-27/ScopeSentry-Scan/modules/targethandler"
-	"github.com/Autumn-27/ScopeSentry-Scan/modules/urlscan"
-	"github.com/Autumn-27/ScopeSentry-Scan/modules/urlsecurity"
-	"github.com/Autumn-27/ScopeSentry-Scan/modules/vulnerabilityscan"
-	"github.com/Autumn-27/ScopeSentry-Scan/modules/webcrawler"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/interfaces"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/options"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/assethandle"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/assetmapping"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/dirscan"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/portfingerprint"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/portscan"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/portscanpreparation"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/subdomainscan"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/subdomainsecurity"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/targethandler"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/urlscan"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/urlsecurity"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/vulnerabilityscan"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/webcrawler"
 )
 
 func CreateScanProcess(op *options.TaskOptions) interfaces.ModuleRunner {

@@ -41,9 +41,9 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/global"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/logger"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/global"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/logger"
 	"github.com/cespare/xxhash/v2"
 	"github.com/hbollon/go-edlib"
 	"github.com/ledongthuc/pdf"

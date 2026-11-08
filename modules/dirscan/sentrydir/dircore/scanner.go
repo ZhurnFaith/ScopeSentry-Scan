@@ -7,8 +7,8 @@
 package dircore
 
 import (
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
-	"github.com/Autumn-27/ScopeSentry-Scan/modules/dirscan/sentrydir/dirutils"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/dirscan/sentrydir/dirutils"
 	"net/url"
 	"regexp"
 	"strings"

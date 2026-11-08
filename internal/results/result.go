@@ -10,10 +10,10 @@ package results
 import (
 	"errors"
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/mongodb"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/logger"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/utils"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/mongodb"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/logger"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/utils"
 	"go.mongodb.org/mongo-driver/mongo"
 	"reflect"
 )

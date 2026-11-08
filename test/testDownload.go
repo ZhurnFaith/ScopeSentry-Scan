@@ -7,7 +7,7 @@
 
 package main
 
-//import "github.com/Autumn-27/ScopeSentry-Scan/pkg/system"
+//import "github.com/ZhurnFaith/ScopeSentry-Scan/pkg/system"
 //
 //func main() {
 //	system.Test()

@@ -8,8 +8,8 @@
 package webfingerprint
 
 import (
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/global"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/global"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
 )
 
 func AcRun(testTitle, testHeader, testBody string) []*types.Fingerprint {

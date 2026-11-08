@@ -8,7 +8,7 @@ package dircore
 
 import (
 	"context"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
 )
 
 type Options struct {

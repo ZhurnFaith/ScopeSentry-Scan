@@ -10,12 +10,12 @@ package node
 import (
 	"context"
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/config"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/global"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/handler"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/redis"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/logger"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/utils"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/config"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/global"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/handler"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/redis"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/logger"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/utils"
 	"github.com/shirou/gopsutil/v3/mem"
 	"time"
 )

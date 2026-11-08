@@ -8,7 +8,7 @@
 package config
 
 import (
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/mongodb"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/mongodb"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )

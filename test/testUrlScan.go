@@ -7,7 +7,7 @@
 package main
 
 //import (
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/urlScanMode"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/urlScanMode"
 //)
 //
 //func main() {

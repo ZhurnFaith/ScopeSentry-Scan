@@ -10,8 +10,8 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/global"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/utils"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/global"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/utils"
 	"log"
 	"os"
 	"path/filepath"

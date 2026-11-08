@@ -9,8 +9,8 @@ package main
 
 //
 //import (
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/system"
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/vulnMode"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/system"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/vulnMode"
 //)
 //
 //func main() {

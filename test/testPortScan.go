@@ -13,8 +13,8 @@ import (
 
 //import (
 //	"fmt"
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/portScanMode"
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/system"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/portScanMode"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/system"
 //)
 //
 //func main() {

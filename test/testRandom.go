@@ -8,7 +8,7 @@ package main
 
 //import (
 //	"fmt"
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/util"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/util"
 //)
 //
 //func main() {

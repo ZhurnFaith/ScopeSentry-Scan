@@ -9,12 +9,12 @@ package passivescan
 
 import (
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/contextmanager"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/handler"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/interfaces"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/options"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/plugins"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/logger"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/contextmanager"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/handler"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/interfaces"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/options"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/plugins"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/logger"
 	"sync"
 	"time"
 )

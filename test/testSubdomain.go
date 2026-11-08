@@ -9,8 +9,8 @@ package main
 
 //import (
 //	"fmt"
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/subfinderMode"
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/system"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/subfinderMode"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/system"
 //	"time"
 //)
 //

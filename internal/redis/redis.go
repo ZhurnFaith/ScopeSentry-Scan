@@ -11,7 +11,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/global"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/global"
 	"github.com/redis/go-redis/v9"
 	"time"
 )

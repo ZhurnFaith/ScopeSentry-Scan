@@ -8,7 +8,7 @@
 package global
 
 import (
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
 	"regexp"
 	"sync"
 )

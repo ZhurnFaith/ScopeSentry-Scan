@@ -1,4 +1,4 @@
-module github.com/Autumn-27/ScopeSentry-Scan
+module github.com/ZhurnFaith/ScopeSentry-Scan
 
 go 1.24.0
 
