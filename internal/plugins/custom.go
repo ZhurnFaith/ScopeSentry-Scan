@@ -71,7 +71,7 @@ func LoadCustomPlugin(path string, modlue string, plgId string) (interfaces.Plug
 	if err != nil {
 		return nil, err
 	}
-	err = interp.Use(symbols.Symbols)
+	err = interp.Use(symbols.WithLegacyAliases())
 	if err != nil {
 		return nil, err
 	}

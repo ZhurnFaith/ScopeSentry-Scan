@@ -255,7 +255,8 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 	args := []string{
 		"-u", data.URL,
 		"-depth", maxDepth,
-		"-mrs", "20971520",
+		// Cap the response body at the configured size (MB); the body is returned inline in the JSONL output
+		"-mrs", strconv.Itoa(responseSize * 1024 * 1024),
 	}
 	if hl {
 		args = append(args, "-hl")
@@ -272,9 +273,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 		"-kf", "all", "-timeout", timeout,
 		"-c", threads,
 		"-p", pValue,
-		"-eof", "raw,body,headers",
-		"-srb",
-		"-srbd", global.TmpDir,
+		"-eof", "raw,headers",
 		"-o", resultFile,
 	}...)
 

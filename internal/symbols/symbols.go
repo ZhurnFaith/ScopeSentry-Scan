@@ -25,6 +25,7 @@ package symbols
 import (
 	"github.com/traefik/yaegi/stdlib"
 	"reflect"
+	"strings"
 )
 
 var Symbols = map[string]map[string]reflect.Value{}
@@ -36,4 +37,22 @@ func init() {
 	} {
 		Symbols[pkg] = stdlib.Symbols[symbols]
 	}
+}
+
+const (
+	modulePath       = "github.com/ZhurnFaith/ScopeSentry-Scan/"
+	legacyModulePath = "github.com/Autumn-27/ScopeSentry-Scan/"
+)
+
+// WithLegacyAliases returns the symbol table plus aliases under the old module path,
+// so existing plugins importing github.com/Autumn-27/ScopeSentry-Scan/... still load.
+func WithLegacyAliases() map[string]map[string]reflect.Value {
+	out := make(map[string]map[string]reflect.Value, len(Symbols)*2)
+	for k, v := range Symbols {
+		out[k] = v
+		if strings.HasPrefix(k, modulePath) {
+			out[legacyModulePath+strings.TrimPrefix(k, modulePath)] = v
+		}
+	}
+	return out
 }

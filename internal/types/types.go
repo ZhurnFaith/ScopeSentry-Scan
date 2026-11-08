@@ -339,7 +339,7 @@ type Request struct {
 
 type Response struct {
 	StatusCode             int       `json:"status_code,omitempty"`
-	Body                   string    `json:"-"`
+	Body                   string    `json:"body,omitempty"`
 	ContentLength          int64     `json:"content_length,omitempty"`
 	StoredResponseBodyPath string    `json:"stored_response_body_path,omitempty"`
 	XhrRequests            []Request `json:"xhr_requests,omitempty"`
