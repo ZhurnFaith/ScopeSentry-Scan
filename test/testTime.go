@@ -25,7 +25,7 @@ func main() {
 	}
 	fmt.Printf("Load Average: %.2f, %.2f, %.2f\n", avgLoad.Load1, avgLoad.Load5, avgLoad.Load15)
 
-	// 获取CPU使用率
+	// Get CPU usage
 	percent, err := cpu.Percent(time.Second, false)
 	if err != nil {
 		fmt.Println("Failed to get CPU usage:", err)
@@ -35,7 +35,7 @@ func main() {
 		fmt.Printf("CPU Usage: %.2f%%\n", percent[0])
 	}
 
-	// 获取内存使用率
+	// Get memory usage
 	memInfo, err := mem.VirtualMemory()
 	if err != nil {
 		fmt.Println("Failed to get memory usage:", err)
@@ -43,7 +43,7 @@ func main() {
 	}
 	fmt.Printf("Memory Usage: %.2f%%\n", memInfo.UsedPercent)
 
-	// 获取主机信息
+	// Get host info
 	hostInfo, err := host.Info()
 	if err != nil {
 		fmt.Println("Failed to get host info:", err)

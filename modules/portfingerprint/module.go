@@ -39,7 +39,7 @@ func NewRunner(op *options.TaskOptions, nextModule interfaces.ModuleRunner) *Run
 func (r *Runner) ModuleRun() error {
 	var allPluginWg sync.WaitGroup
 	var resultWg sync.WaitGroup
-	// 创建一个共享的 result 通道
+	// Create a shared result channel
 	resultChan := make(chan interface{}, 2000)
 	go func() {
 		err := r.NextModule.ModuleRun()
@@ -47,7 +47,7 @@ func (r *Runner) ModuleRun() error {
 			logger.SlogError(fmt.Sprintf("Next module run error: %v", err))
 		}
 	}()
-	// 结果处理 goroutine，异步读取插件的结果
+	// Result handling goroutine, reads plugin results asynchronously
 	resultWg.Add(1)
 	go func() {
 		defer resultWg.Done()
@@ -60,18 +60,18 @@ func (r *Runner) ModuleRun() error {
 						r.NextModule.GetInput() <- resultArray
 					}
 					time.Sleep(3 * time.Second)
-					// 如果 resultChan 关闭了，退出循环
-					// 此模块运行完毕，关闭下个模块的输入
+					// If resultChan is closed, exit the loop
+					// This module is done, close the next module's input
 					r.NextModule.CloseInput()
 					return
 				}
-				// 将 result 加入数组
+				// Add result to array
 				resultArray = append(resultArray, result)
 
-				// 如果数组长度超过 20，发送到下个模块并清空数组
+				// If the array length exceeds 20, send to the next module and clear the array
 				if len(resultArray) > 10 {
 					r.NextModule.GetInput() <- resultArray
-					resultArray = nil // 清空数组
+					resultArray = nil // Clear array
 				}
 			}
 		}
@@ -90,14 +90,14 @@ func (r *Runner) ModuleRun() error {
 				close(resultChan)
 				resultWg.Wait()
 				r.Option.ModuleRunWg.Done()
-				doneCalled = true // 标记已调用 Done
+				doneCalled = true // Mark as called Done
 			}
 			return nil
 		case data, ok := <-r.Input:
 			if !ok {
 				time.Sleep(3 * time.Second)
 				allPluginWg.Wait()
-				// 通道已关闭，结束处理
+				// Channel closed, end processing
 				if firstData {
 					end = time.Now()
 					duration := end.Sub(start)
@@ -107,7 +107,7 @@ func (r *Runner) ModuleRun() error {
 					close(resultChan)
 					resultWg.Wait()
 					r.Option.ModuleRunWg.Done()
-					doneCalled = true // 标记已调用 Done
+					doneCalled = true // Mark as called Done
 				}
 				logger.SlogInfoLocal(fmt.Sprintf("module %v target %v close resultChan", r.GetName(), r.Option.Target))
 				return nil
@@ -125,7 +125,7 @@ func (r *Runner) ModuleRun() error {
 			allPluginWg.Add(1)
 			go func(data interface{}) {
 				defer allPluginWg.Done()
-				//发送来的数据 只能是types.PortAlive
+				//Incoming data can only be types.PortAlive
 				portAlive, _ := data.(types.PortAlive)
 				var asset types.AssetOther
 				asset = types.AssetOther{
@@ -134,14 +134,14 @@ func (r *Runner) ModuleRun() error {
 					Port:    portAlive.Port,
 					Service: "",
 				}
-				// 这里如果端口为空，说明是直接发过来并没有进行端口扫描，直接发送到下个模块
+				// An empty port here means it was sent directly without a port scan, so send it to the next module
 				if asset.Port == "" {
-					// 如果端口为空，则只测试http服务
+					// If port is empty, only test the http service
 					asset.Type = "http"
 					resultChan <- asset
 				} else {
 					if len(r.Option.PortFingerprint) != 0 {
-						// 调用插件
+						// Call plugin
 						for _, pluginId := range r.Option.PortFingerprint {
 							//var plgWg sync.WaitGroup
 							var plgWg sync.WaitGroup
@@ -178,7 +178,7 @@ func (r *Runner) ModuleRun() error {
 								}
 								plgWg.Wait()
 								if asset.Service != "" {
-									// 如果已经识别到端口的服务，则退出循环不执行之后的插件
+									// If the port's service is already identified, exit the loop and skip later plugins
 									break
 								}
 								logger.SlogDebugLocal(fmt.Sprintf("%v plugin end execute: %v", plg.GetName(), data))
@@ -186,13 +186,13 @@ func (r *Runner) ModuleRun() error {
 								logger.SlogError(fmt.Sprintf("plugin %v not found", pluginId))
 							}
 						}
-						// 如果没有检测到端口服务，则获取原始响应
+						// If no port service was detected, get the raw response
 						if asset.Service == "" {
 							asset.Type = "other"
 							asset.Service = "unknown"
 							portUint64, err := strconv.ParseUint(asset.Port, 10, 16)
 							if err != nil {
-								logger.SlogError(fmt.Sprintf("端口转换错误: %v", err))
+								logger.SlogError(fmt.Sprintf("Port conversion error: %v", err))
 							} else {
 								rev, err := utils.Requests.TcpRecv(asset.Host, uint16(portUint64))
 								if err == nil {
@@ -204,11 +204,11 @@ func (r *Runner) ModuleRun() error {
 							}
 							resultChan <- asset
 						} else {
-							// 识别成功
+							// Identified successfully
 							resultChan <- asset
 						}
 					} else {
-						// 如果没有开启端口指纹识别扫描，则只进行http测绘
+						// If port fingerprinting is not enabled, only do http mapping
 						asset.Type = "http"
 						resultChan <- asset
 					}

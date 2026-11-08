@@ -96,10 +96,10 @@ package main
 //			go func(rule types.SensitiveRule) {
 //
 //				defer wg.Done()
-//				sem <- struct{}{} // 获取一个令牌
+//				sem <- struct{}{} // Acquire a token
 //				defer func() {
 //					<-sem
-//				}() // 释放一个令牌
+//				}() // Release a token
 //				start := time.Now()
 //				r, err := regexp2.Compile(rule.Regular, 0)
 //				if err != nil {

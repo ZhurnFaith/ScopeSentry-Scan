@@ -73,7 +73,7 @@ func InitializeTools() {
 	}
 }
 
-// ReadYAMLFile 读取 YAML 文件并将其解析为目标结构体
+// ReadYAMLFile read a YAML file and parse it into the target struct
 func (t *UtilTools) ReadYAMLFile(filePath string, target interface{}) error {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -94,7 +94,7 @@ func (t *UtilTools) ReadYAMLFile(filePath string, target interface{}) error {
 	return nil
 }
 
-// WriteYAMLFile 将目标结构体序列化为 YAML 并写入到文件
+// WriteYAMLFile serialize the target struct to YAML and write it to a file
 func (t *UtilTools) WriteYAMLFile(filePath string, data interface{}) error {
 	yamlData, err := yaml.Marshal(data)
 	if err != nil {
@@ -109,11 +109,11 @@ func (t *UtilTools) WriteYAMLFile(filePath string, data interface{}) error {
 	return nil
 }
 
-// GenerateRandomString 生产指定长度的随机字符串
+// GenerateRandomString generate a random string of the specified length
 func (t *UtilTools) GenerateRandomString(length int) string {
-	// 定义字符集
+	// Define charset
 	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	// 构建随机字符串
+	// Build random string
 	result := make([]byte, length)
 	for i := 0; i < length; i++ {
 		result[i] = charset[rand.Intn(len(charset))]
@@ -121,7 +121,7 @@ func (t *UtilTools) GenerateRandomString(length int) string {
 	return string(result)
 }
 
-// 将整数转换为62进制字符串
+// Convert integer to base62 string
 func (t *UtilTools) ToBase62(num int64) string {
 	chars := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	if num == 0 {
@@ -136,7 +136,7 @@ func (t *UtilTools) ToBase62(num int64) string {
 	return result
 }
 
-// GenerateHash 生成唯一hash
+// GenerateHash generate unique hash
 func (t *UtilTools) GenerateHash() string {
 	timestamp := time.Now().Unix()
 	secondsSince2000 := timestamp - 1747958400
@@ -147,9 +147,9 @@ func (t *UtilTools) GenerateHash() string {
 	return hash
 }
 
-// GetSystemUsage 获取系统使用率
+// GetSystemUsage get system usage
 func (t *UtilTools) GetSystemUsage() (int, float64) {
-	// 获取CPU使用率
+	// Get CPU usage
 	percent, err := cpu.Percent(3*time.Second, false)
 	if err != nil {
 		logger.SlogErrorLocal(fmt.Sprintf("Failed to get CPU usage:", err))
@@ -159,7 +159,7 @@ func (t *UtilTools) GetSystemUsage() (int, float64) {
 	if len(percent) > 0 {
 		cpuNum = int(percent[0])
 	}
-	// 获取内存使用率
+	// Get memory usage
 	memInfo, err := mem.VirtualMemory()
 	if err != nil {
 		fmt.Println("Failed to get memory usage:", err)
@@ -169,15 +169,15 @@ func (t *UtilTools) GetSystemUsage() (int, float64) {
 	return cpuNum, memInfo.UsedPercent
 }
 
-// WriteContentFile 将字符串写入指定文件
+// WriteContentFile write string to the specified file
 func (t *UtilTools) WriteContentFile(filPath string, fileContent string) error {
-	// 将字符串写入文件
+	// Write string to file
 	return t.WriteByteContentFile(filPath, []byte(fileContent))
 }
 
-// WriteByteContentFile 将byte写入指定文件, 覆盖写入
+// WriteByteContentFile write bytes to the specified file, overwriting
 func (t *UtilTools) WriteByteContentFile(filPath string, fileContent []byte) error {
-	// 将字符串写入文件
+	// Write string to file
 	err := t.EnsureFilePathExists(filPath)
 	if err != nil {
 		return err
@@ -189,13 +189,13 @@ func (t *UtilTools) WriteByteContentFile(filPath string, fileContent []byte) err
 	return nil
 }
 
-// WriteContentFileAppend 将字符串写入指定文件
+// WriteContentFileAppend write string to the specified file
 func (t *UtilTools) WriteContentFileAppend(filPath string, fileContent string) error {
-	// 将字符串写入文件
+	// Write string to file
 	return t.AppendOrCreateFile(filPath, []byte(fileContent))
 }
 
-// getFileLock 获取文件锁
+// getFileLock acquire file lock
 func (t *UtilTools) GetFileLock(filePath string) *sync.Mutex {
 	t.fileMu.Lock()
 	defer t.fileMu.Unlock()
@@ -206,27 +206,27 @@ func (t *UtilTools) GetFileLock(filePath string) *sync.Mutex {
 	return t.fileLocks[filePath]
 }
 
-// ClearAllLocks 清空所有文件锁
+// ClearAllLocks clear all file locks
 func (t *UtilTools) ClearAllLocks() {
 	t.fileMu.Lock()
 	defer t.fileMu.Unlock()
 
-	t.fileLocks = make(map[string]*sync.Mutex) // 创建新的空 map，旧的会被垃圾回收
+	t.fileLocks = make(map[string]*sync.Mutex) // Create a new empty map, the old one will be garbage collected
 }
 
-// AppendOrCreateFile 追加写入文件，如果文件不存在则创建
+// AppendOrCreateFile append to file, create it if it does not exist
 func (t *UtilTools) AppendOrCreateFile(filePath string, fileContent []byte) error {
 	lock := t.GetFileLock(filePath)
 	lock.Lock()
 	defer lock.Unlock()
 
-	// 确保文件路径存在
+	// Ensure file path exists
 	err := t.EnsureFilePathExists(filePath)
 	if err != nil {
 		return err
 	}
 
-	// 打开文件，支持追加写入或创建新文件
+	// Open file, supports appending or creating a new file
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		logger.SlogErrorLocal(fmt.Sprintf("Failed to open or create file: %s - %s", filePath, err))
@@ -234,7 +234,7 @@ func (t *UtilTools) AppendOrCreateFile(filePath string, fileContent []byte) erro
 	}
 	defer file.Close()
 
-	// 写入内容
+	// Write content
 	if _, err := file.Write(fileContent); err != nil {
 		logger.SlogErrorLocal(fmt.Sprintf("Failed to write to file: %s - %s", filePath, err))
 		return err
@@ -242,7 +242,7 @@ func (t *UtilTools) AppendOrCreateFile(filePath string, fileContent []byte) erro
 	return nil
 }
 
-// MarshalYAMLToString 将目标结构体序列化为 YAML 字符串
+// MarshalYAMLToString serialize the target struct to a YAML string
 func (t *UtilTools) MarshalYAMLToString(data interface{}) (string, error) {
 	yamlData, err := yaml.Marshal(data)
 	if err != nil {
@@ -251,7 +251,7 @@ func (t *UtilTools) MarshalYAMLToString(data interface{}) (string, error) {
 	return string(yamlData), nil
 }
 
-// StructToJSON 将结构体序列化为json
+// StructToJSON serialize struct to json
 func (t *UtilTools) StructToJSON(data interface{}) (string, error) {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -260,54 +260,54 @@ func (t *UtilTools) StructToJSON(data interface{}) (string, error) {
 	return string(jsonData), nil
 }
 
-// JSONToStruct 将 JSON 字符串反序列化为结构体
+// JSONToStruct deserialize JSON string into struct
 func (t *UtilTools) JSONToStruct(jsonStr []byte, result interface{}) error {
 	return json.Unmarshal(jsonStr, result)
 }
 
-// ParseArgs 从字符串解析为参数
-// 参数：
-// - args: 输入的参数字符串，需要解析的参数，例如 "--name John --age 30"。
-// - keys: 需要解析的键名列表，表示哪些键值对会被解析，比如传入 "name" 和 "age"。
+// ParseArgs parse parameters from string
+// Parameters:
+// - args: input parameter string to parse, e.g. "--name John --age 30".
+// - keys: list of key names to parse, i.e. which key-value pairs are parsed, e.g. passing "name" and "age".
 //
-// 返回值：
-// - map[string]string: 返回一个包含键值对的 map，键是 keys 中指定的参数，值是解析出来的字符串。
-// - error: 如果解析过程中遇到错误，则返回一个 error。
+// Returns:
+// - map[string]string: returns a map of key-value pairs where keys are the parameters in keys and values are the parsed strings.
+// - error: returns an error if parsing fails.
 func (t *UtilTools) ParseArgs(args string, keys ...string) (map[string]string, error) {
-	// 将参数字符串分割为切片
+	// Split parameter string into slice
 	argsSlice := strings.Fields(args)
 
-	// 创建一个 FlagSet 对象来解析参数
+	// Create a FlagSet to parse the arguments
 	fs := flag.NewFlagSet("ParseArgs", flag.ContinueOnError)
 
-	// 创建一个 map 用于存储 flag 的值
+	// Create a map to store flag values
 	values := make(map[string]*string)
 
-	// 遍历 keys，为每个 key 添加一个 flag
+	// Iterate over keys, add one for each key flag
 	for _, key := range keys {
 		value := ""
 		values[key] = &value
 		fs.StringVar(values[key], key, "", "a placeholder for "+key)
 	}
 
-	// 通过重定向标准输出，避免错误信息输出
+	// Redirect stdout to avoid printing error messages
 	originalStderr := os.Stderr
 	_, w, _ := os.Pipe()
 	os.Stderr = w
-	// 解析参数
+	// Parse parameters
 	err := fs.Parse(argsSlice)
 
-	// 恢复标准输出
+	// Restore stdout
 	w.Close()
 	os.Stderr = originalStderr
 
-	// 读取错误输出
+	// Read stderr
 	if err != nil {
-		// 如果有错误，可以选择记录日志
+		// If there is an error, optionally log it
 		// fmt.Println("Ignored extra arguments:", err)
 	}
 
-	// 获取 key 对应的值并填充到结果 map 中
+	// Get the value for key and fill it into the result map
 	result := make(map[string]string)
 	for _, key := range keys {
 		if valuePtr, ok := values[key]; ok {
@@ -320,9 +320,9 @@ func (t *UtilTools) ParseArgs(args string, keys ...string) (map[string]string, e
 	return result, nil
 }
 
-// DeleteFile 删除指定文件
+// DeleteFile delete the specified file
 func (t *UtilTools) DeleteFile(filePath string) {
-	// 检查文件是否存在
+	// Check whether file exists
 	if filePath == "" {
 		return
 	}
@@ -332,7 +332,7 @@ func (t *UtilTools) DeleteFile(filePath string) {
 		return
 	}
 
-	// 文件存在，进行删除
+	// File exists, deleting
 	err := os.Remove(filePath)
 	if err != nil {
 		return
@@ -342,25 +342,25 @@ func (t *UtilTools) DeleteFile(filePath string) {
 func (t *UtilTools) DeleteFolder(folderPath string) error {
 	err := os.RemoveAll(folderPath)
 	if err != nil {
-		return fmt.Errorf("删除文件夹失败: %v", err)
+		return fmt.Errorf("Failed to delete folder: %v", err)
 	}
 	return nil
 }
 
-// GetParameter 获取指定模块指定插件的参数
+// GetParameter get parameters of the specified plugin in the specified module
 func (t *UtilTools) GetParameter(Parameters map[string]map[string]string, module string, plugin string) (string, bool) {
-	// 查找 module 是否存在
+	// Check whether module exists
 	if plugins, modOk := Parameters[module]; modOk {
-		// 查找 plugin 是否存在
+		// Check whether plugin exists
 		if param, plugOk := plugins[plugin]; plugOk {
 			return param, true
 		}
 	}
-	// 没有找到对应的参数，返回 false
+	// No matching parameter found, return false
 	return "", false
 }
 
-//// GetRootDomain 获取域名的根域名
+//// GetRootDomain get the root domain of a domain
 //func (t *UtilTools) GetRootDomain(input string) (string, error) {
 //	input = strings.TrimPrefix(input, "http://")
 //	input = strings.TrimPrefix(input, "https://")
@@ -371,7 +371,7 @@ func (t *UtilTools) GetParameter(Parameters map[string]map[string]string, module
 //	}
 //	input = "https://" + input
 //
-//	// 尝试解析为 URL
+//	// Try to parse as URL
 //	u, err := url.Parse(input)
 //	if err == nil && u.Hostname() != "" {
 //		ipHost := net.ParseIP(u.Hostname())
@@ -380,90 +380,90 @@ func (t *UtilTools) GetParameter(Parameters map[string]map[string]string, module
 //		}
 //		eTLDPlusOne, err := publicsuffix.EffectiveTLDPlusOne(u.Hostname())
 //		if err != nil {
-//			return input, fmt.Errorf("根域名解析错误")
+//			return input, fmt.Errorf("Root domain parse error")
 //		}
 //		return eTLDPlusOne, nil
 //		//hostParts := strings.Split(u.Hostname(), ".")
 //		//if len(hostParts) < 2 {
-//		//	return "", fmt.Errorf("域名格式不正确")
+//		//	return "", fmt.Errorf("Invalid domain format")
 //		//}
 //		//if len(hostParts) == 2 {
 //		//	return u.Hostname(), nil
 //		//}
-//		//// 检查是否为复合域名
+//		//// Check whether it is a compound domain
 //		//if _, ok := compoundDomains[hostParts[len(hostParts)-2]+"."+hostParts[len(hostParts)-1]]; ok {
 //		//	return hostParts[len(hostParts)-3] + "." + hostParts[len(hostParts)-2] + "." + hostParts[len(hostParts)-1], nil
 //		//}
 //		//
-//		//// 如果域名以 www 开头，特殊处理
+//		//// If the domain starts with www, handle specially
 //		//if hostParts[0] == "www" {
 //		//	return hostParts[len(hostParts)-2] + "." + hostParts[len(hostParts)-1], nil
 //		//}
 //		//
 //		//return hostParts[len(hostParts)-2] + "." + hostParts[len(hostParts)-1], nil
 //	}
-//	return input, fmt.Errorf("输入既不是有效的 URL，也不是有效的 IP 地址: %v", input)
+//	return input, fmt.Errorf("Input is neither a valid URL nor a valid IP address: %v", input)
 //}
 
-// GetRootDomain 提取输入中的根域名或 IP 地址
+// GetRootDomain extract root domain or IP address from input
 func (t *UtilTools) GetRootDomain(input string) (string, error) {
 	u, err := t.SafeParseURL(input)
 	if err != nil {
-		return input, fmt.Errorf("URL 解析失败: %w", err)
+		return input, fmt.Errorf("URL parse failed: %w", err)
 	}
 
 	hostname := u.Hostname()
 	if hostname == "" {
-		return input, fmt.Errorf("无法获取 Hostname")
+		return input, fmt.Errorf("Unable to get Hostname")
 	}
 
-	// 是 IP 则直接返回
+	// If it is an IP, return directly
 	if ip := net.ParseIP(hostname); ip != nil {
 		return ip.String(), nil
 	}
 
-	// 提取有效根域名
+	// Extract valid root domains
 	rootDomain, err := publicsuffix.EffectiveTLDPlusOne(hostname)
 	if err != nil {
-		return input, fmt.Errorf("根域名解析错误: %w", err)
+		return input, fmt.Errorf("Root domain parse error: %w", err)
 	}
 
 	return rootDomain, nil
 }
 
-// SafeParseURL 安全解析 URL，处理非法 %、中文域名、空格等问题
+// SafeParseURL safely parse URLs, handling invalid %, Chinese domain names, spaces, etc.
 func (t *UtilTools) SafeParseURL(input string) (*url.URL, error) {
 	if input == "" {
-		return nil, fmt.Errorf("输入为空")
+		return nil, fmt.Errorf("Input is empty")
 	}
 
 	input = strings.TrimSpace(input)
 	input = sanitizePercent(input)
 	input = strings.ReplaceAll(input, " ", "%20")
 
-	// 补充协议头
+	// Add protocol prefix
 	if !strings.HasPrefix(input, "http://") && !strings.HasPrefix(input, "https://") {
 		input = "https://" + input
 	}
 
 	u, err := url.Parse(input)
 	if err != nil {
-		return nil, fmt.Errorf("URL 解析失败: %w", err)
+		return nil, fmt.Errorf("URL parse failed: %w", err)
 	}
 
-	// IDNA 处理中文域名
+	// IDNA handle Chinese domain names
 	asciiHost, err := idna.ToASCII(u.Hostname())
 	if err != nil {
-		return nil, fmt.Errorf("域名 IDNA 转换失败: %w", err)
+		return nil, fmt.Errorf("Domain IDNA conversion failed: %w", err)
 	}
 
-	// 补上端口（如有）
+	// Append port (if any)
 	u.Host = asciiHost + portSuffix(u.Host)
 
 	return u, nil
 }
 
-// sanitizePercent 修复非法的 % 编码
+// sanitizePercent fix invalid % encoding
 func sanitizePercent(input string) string {
 	var builder strings.Builder
 	for i := 0; i < len(input); i++ {
@@ -480,12 +480,12 @@ func sanitizePercent(input string) string {
 	return builder.String()
 }
 
-// 判断是否为合法十六进制字符
+// Check whether it is a valid hex character
 func isHexDigit(b byte) bool {
 	return ('0' <= b && b <= '9') || ('a' <= b && b <= 'f') || ('A' <= b && b <= 'F')
 }
 
-// 提取原 host 的端口号（如有）
+// Extract the original host's port (if any)
 func portSuffix(host string) string {
 	if colon := strings.LastIndex(host, ":"); colon != -1 && colon < len(host)-1 {
 		port := host[colon+1:]
@@ -549,7 +549,7 @@ var compoundDomains = map[string]bool{
 	"zj.cn":  true,
 }
 
-// HttpGetDownloadFile 通过http下载文件到指定路径
+// HttpGetDownloadFile download file over http to the specified path
 func (t *UtilTools) HttpGetDownloadFile(url, filePath string) (bool, error) {
 	resp, err := http.Get(url)
 	if err != nil {
@@ -566,14 +566,14 @@ func (t *UtilTools) HttpGetDownloadFile(url, filePath string) (bool, error) {
 		return false, fmt.Errorf("ioutil.ReadAll failed: %w", err)
 	}
 
-	// 获取文件所在的目录路径
+	// Get the directory path of the file
 	dir := filepath.Dir(filePath)
-	// 创建文件所在的目录（如果目录不存在）
-	err = os.MkdirAll(dir, 0777) // MkdirAll 会递归创建目录
+	// Create the file's directory (if it does not exist)
+	err = os.MkdirAll(dir, 0777) // MkdirAll creates directories recursively
 	if err != nil {
 		return false, fmt.Errorf("os.MkdirAll failed: %w", err)
 	}
-	// 将文件内容写入本地文件
+	// Write file content to a local file
 	err = ioutil.WriteFile(filePath, body, 0777)
 	if err != nil {
 		return false, fmt.Errorf("ioutil.WriteFile failed: %w", err)
@@ -584,25 +584,25 @@ func (t *UtilTools) HttpGetDownloadFile(url, filePath string) (bool, error) {
 
 func (t *UtilTools) ExecuteCommandWithTimeout(command string, args []string, timeout time.Duration, externalCtx context.Context) error {
 	logger.SlogInfo(fmt.Sprintf("ExecuteCommandWithTimeout cmd: %v args %v", command, args))
-	// 创建一个带有超时的上下文
+	// Create a context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel() // 确保在函数结束后取消上下文，防止资源泄漏
-	// 使用 select 来监控两个上下文：超时上下文和外部传入的上下文
-	// 创建一个新的上下文，该上下文会在任意一个上下文被取消时取消
+	defer cancel() // Ensure the context is canceled after the function ends to prevent resource leaks
+	// Use select to watch two contexts: the timeout context and the passed-in context
+	// Create a new context that is canceled when either context is canceled
 	mergedCtx, mergedCancel := context.WithCancel(ctx)
 	go func() {
-		// 监听外部上下文的取消
+		// Listen for external context cancellation
 		select {
 		case <-externalCtx.Done():
-			mergedCancel() // 外部上下文取消时，取消合并的上下文
+			mergedCancel() // When the external context is canceled, cancel the merged context
 			return
 		case <-ctx.Done():
-			// 超时上下文取消时，合并上下文也取消
+			// When the timeout context is canceled, the merged context is canceled too
 			mergedCancel()
 			return
 		}
 	}()
-	// 创建命令对象，使用带上下文的 exec.CommandContext
+	// Create command object, using context-aware exec.CommandContext
 	cmd := exec.CommandContext(mergedCtx, command, args...)
 	stdout, _ := cmd.StdoutPipe()
 	stderr, _ := cmd.StderrPipe()
@@ -614,7 +614,7 @@ func (t *UtilTools) ExecuteCommandWithTimeout(command string, args []string, tim
 	//	return fmt.Errorf("failed to get stderr: %w", err)
 	//}
 
-	// 启动命令
+	// Start command
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("failed to start command: %w", err)
 	}
@@ -629,60 +629,60 @@ func (t *UtilTools) ExecuteCommandWithTimeout(command string, args []string, tim
 	//	}
 	//}()
 
-	// 等待命令完成
+	// Wait for command to complete
 	err := cmd.Wait()
 
 	if err != nil {
-		// 如果是上下文取消的错误
+		// If it is a context canceled error
 		if errors.Is(mergedCtx.Err(), context.Canceled) {
-			// 上下文被取消
+			// Context canceled
 			logger.SlogWarnLocal(fmt.Sprintf("command execution canceled: %v", command))
 			return nil
 		}
 
-		// 如果是超时错误
+		// If it is a timeout error
 		if errors.Is(mergedCtx.Err(), context.DeadlineExceeded) {
-			// 上下文超时
+			// Context timeout
 			logger.SlogWarnLocal(fmt.Sprintf("command execution timed out: %v", command))
 			return nil
 		}
 		return err
 	}
-	// 如果没有错误，说明命令执行成功
+	// If there is no error, the command ran successfully
 	return nil
 }
 
-// ExecuteCommandToChanWithTimeout 执行指定命令，命令的输出每一行会发送到 result 的通道中，支持上下文管理和超时时间。
+// ExecuteCommandToChanWithTimeout run the specified command; each output line is sent to the result channel, with context and timeout support.
 func (t *UtilTools) ExecuteCommandToChanWithTimeout(cmdName string, args []string, result chan<- string, timeout time.Duration, ctx context.Context) {
 	logger.SlogInfo(fmt.Sprintf("ExecuteCommandToChanWithTimeout cmd: %v args %v", cmdName, args))
-	// 使用超时时间包装上下文
+	// Wrap context with timeout
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	defer close(result)
-	// 创建命令
+	// Create command
 	cmd := exec.CommandContext(ctxWithTimeout, cmdName, args...)
 	var wg sync.WaitGroup
-	// 获取命令输出管道（标准输出）
+	// Get command output pipe (stdout)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		logger.SlogWarnLocal(fmt.Sprintf("Error getting stdout pipe: %v", err))
 		return
 	}
 
-	// 获取命令错误输出管道（标准错误）
+	// Get command error output pipe (stderr)
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		logger.SlogWarnLocal(fmt.Sprintf("Error getting stderr pipe: %v", err))
 		return
 	}
 
-	// 启动命令
+	// Start command
 	if err := cmd.Start(); err != nil {
 		logger.SlogWarnLocal(fmt.Sprintf("Error getting starting command: %v", err))
 		return
 	}
 	wg.Add(1)
-	// 使用 goroutine 读取命令的标准输出
+	// Read the command's stdout in a goroutine
 	go func() {
 		defer wg.Done()
 		reader := bufio.NewReaderSize(stdout, 7340032)
@@ -703,7 +703,7 @@ func (t *UtilTools) ExecuteCommandToChanWithTimeout(cmdName string, args []strin
 		}
 	}()
 	wg.Add(1)
-	// 使用 goroutine 读取命令的错误输出
+	// Read the command's stderr in a goroutine
 	go func() {
 		defer wg.Done()
 		scanner := bufio.NewScanner(stderr)
@@ -722,7 +722,7 @@ func (t *UtilTools) ExecuteCommandToChanWithTimeout(cmdName string, args []strin
 		}
 	}()
 
-	// 等待命令执行完毕
+	// Wait for command to finish
 	err = cmd.Wait()
 	if err != nil {
 		select {
@@ -735,13 +735,13 @@ func (t *UtilTools) ExecuteCommandToChanWithTimeout(cmdName string, args []strin
 	wg.Wait()
 }
 
-// ExecuteCommandToChan 执行指定命令，命令的输出每一行会发送到result的通道中。
+// ExecuteCommandToChan run the specified command, each output line is sent to the result channel.
 func (t *UtilTools) ExecuteCommandToChan(cmdName string, args []string, result chan<- string) {
 	logger.SlogInfo(fmt.Sprintf("ExecuteCommandToChan cmd: %v args %v", cmdName, args))
-	// 创建命令
+	// Create command
 	cmd := exec.Command(cmdName, args...)
 
-	// 获取命令输出管道（标准输出）
+	// Get command output pipe (stdout)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		result <- fmt.Sprintf("Error getting stdout pipe: %v", err)
@@ -749,30 +749,30 @@ func (t *UtilTools) ExecuteCommandToChan(cmdName string, args []string, result c
 		return
 	}
 
-	// 启动命令
+	// Start command
 	if err := cmd.Start(); err != nil {
 		result <- fmt.Sprintf("Error starting command: %v", err)
 		close(result)
 		return
 	}
 
-	// 使用 bufio 读取命令的标准输出
+	// Read the command's stdout with bufio
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
-		// 将每行输出发送到 result 通道
+		// Send each output line to the result channel
 		result <- scanner.Text()
 	}
 
-	// 等待命令执行完毕
+	// Wait for command to finish
 	if err := cmd.Wait(); err != nil {
 		result <- fmt.Sprintf("Error waiting for command: %v", err)
 	}
 
-	// 关闭 result 通道，表示数据发送完毕
+	// Close the result channel to signal that sending is done
 	close(result)
 }
 
-// CalculateMD5 计算字符串的md5值
+// CalculateMD5 calculate md5 of string
 func (t *UtilTools) CalculateMD5(input string) string {
 	// Convert the input string to bytes
 	data := []byte(input)
@@ -786,21 +786,21 @@ func (t *UtilTools) CalculateMD5(input string) string {
 	return hashString
 }
 
-// WriteLinesToFile 将字符串数组的每一行写入指定文件
+// WriteLinesToFile write each line of the string array to the specified file
 func (t *UtilTools) WriteLinesToFile(filePath string, lines *[]string) error {
 
-	// 获取文件所在的目录路径
+	// Get the directory path of the file
 	dir := filepath.Dir(filePath)
-	// 创建文件所在的目录（如果目录不存在）
-	err := os.MkdirAll(dir, 0777) // MkdirAll 会递归创建目录
+	// Create the file's directory (if it does not exist)
+	err := os.MkdirAll(dir, 0777) // MkdirAll creates directories recursively
 	if err != nil {
 		return fmt.Errorf("os.MkdirAll failed: %w", err)
 	}
 
-	// 打开文件，如果文件不存在则创建
+	// Open file, create it if it does not exist
 	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
-		return fmt.Errorf("无法打开文件: %v", err)
+		return fmt.Errorf("Unable to open file: %v", err)
 	}
 	defer func(file *os.File) {
 		err := file.Close()
@@ -809,20 +809,20 @@ func (t *UtilTools) WriteLinesToFile(filePath string, lines *[]string) error {
 		}
 	}(file)
 
-	// 创建一个缓冲写入器
+	// Create a buffered writer
 	writer := bufio.NewWriter(file)
 
-	// 将数组中的每一行写入文件
+	// Write each line of the array to file
 	for _, line := range *lines {
 		_, err := writer.WriteString(line + "\n")
 		if err != nil {
-			return fmt.Errorf("写入文件时出错: %v", err)
+			return fmt.Errorf("Error writing file: %v", err)
 		}
 	}
 
-	// 刷新缓冲区，确保所有数据写入文件
+	// Flush buffer to ensure all data is written to file
 	if err := writer.Flush(); err != nil {
-		return fmt.Errorf("刷新缓冲区时出错: %v", err)
+		return fmt.Errorf("Error flushing buffer: %v", err)
 	}
 
 	return nil
@@ -852,22 +852,22 @@ var timeZoneOffsets = map[string]int{
 }
 
 func (t *UtilTools) GetTimeNow() string {
-	// 获取当前时间
+	// Get current time
 	timeZoneName := global.AppConfig.TimeZoneName
 
 	var location *time.Location
 	var err error
 
-	// 查找时区名称对应的偏移量
+	// Find the offset for the time zone name
 	offset, exists := timeZoneOffsets[timeZoneName]
 	if exists {
-		// 如果存在映射，使用固定时区
+		// If a mapping exists, use the fixed time zone
 		location = time.FixedZone(timeZoneName, offset)
 	} else {
-		// 如果映射不存在，尝试直接加载时区名称
+		// If no mapping exists, try loading the time zone name directly
 		location, err = time.LoadLocation(timeZoneName)
 		if err != nil {
-			// 如果加载失败，使用系统默认时区
+			// If loading fails, use the system default time zone
 			fmt.Printf("Time zone not found: %s, using system default time zone\n", timeZoneName)
 			location = time.Local
 		}
@@ -877,14 +877,14 @@ func (t *UtilTools) GetTimeNow() string {
 	return easternTime.Format("2006-01-02 15:04:05")
 }
 
-// EnsureDir 判断目录是否存在，不存在则创建
+// EnsureDir check whether directory exists, create it if not
 func (t *UtilTools) EnsureDir(dirPath string) error {
-	// 检查目录是否存在
+	// Check whether directory exists
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		// 如果目录不存在，则创建目录
+		// If directory does not exist, create it
 		err := os.MkdirAll(dirPath, os.ModePerm)
 		if err != nil {
-			return fmt.Errorf("创建目录失败: %w", err)
+			return fmt.Errorf("Failed to create directory: %w", err)
 		}
 		return nil
 	} else {
@@ -892,9 +892,9 @@ func (t *UtilTools) EnsureDir(dirPath string) error {
 	}
 }
 
-// EnsureFilePathExists 检查给定的文件路径，如果文件夹不存在则创建
+// EnsureFilePathExists check the given file path, create the folder if it does not exist
 func (t *UtilTools) EnsureFilePathExists(filePath string) error {
-	// 获取文件的目录路径
+	// Get the file's directory path
 	dir := filepath.Dir(filePath)
 
 	err := t.EnsureDir(dir)
@@ -904,7 +904,7 @@ func (t *UtilTools) EnsureFilePathExists(filePath string) error {
 	return nil
 }
 
-// ReadFileLineByLine 函数逐行读取文件，并将每一行发送到通道中
+// ReadFileLineByLine function reads the file line by line and sends each line to the channel
 func (t *UtilTools) ReadFileLineByLine(filePath string, lineChan chan<- string, ctx context.Context) error {
 	defer close(lineChan)
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -912,70 +912,70 @@ func (t *UtilTools) ReadFileLineByLine(filePath string, lineChan chan<- string, 
 	} else if err != nil {
 		return err
 	}
-	// 打开文件
+	// Open file
 	file, err := os.Open(filePath)
 	if err != nil {
 		return err
 	}
-	defer file.Close() // 函数结束时关闭文件
-	// 使用 bufio.Scanner 逐行读取文件
+	defer file.Close() // Close file when function ends
+	// Read the file line by line with bufio.Scanner
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		select {
 		case <-ctx.Done():
 			return nil
 		default:
-			lineChan <- scanner.Text() // 将读取到的行发送到通道
+			lineChan <- scanner.Text() // Send read lines to the channel
 		}
 	}
 
-	// 检查读取过程中是否发生错误
+	// Check whether an error occurred while reading
 	if err := scanner.Err(); err != nil {
 		return err
 	}
 	return nil
 }
 
-// ReadFileLineReader 读取文件按行处理，每行是一个完整的JSON对象
+// ReadFileLineReader read the file line by line, each line is a complete JSON object
 func (t *UtilTools) ReadFileLineReader(filePath string, lineChan chan<- string, ctx context.Context) error {
 	defer close(lineChan)
 
-	// 检查文件是否存在
+	// Check whether file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return nil
 	} else if err != nil {
 		return err
 	}
 
-	// 打开文件
+	// Open file
 	file, err := os.Open(filePath)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	// 使用大缓冲区来提高读取性能
-	reader := bufio.NewReaderSize(file, 30*1024) // 30KB 缓冲区
+	// Use a large buffer to improve read performance
+	reader := bufio.NewReaderSize(file, 30*1024) // 30KB buffer
 
-	// 循环按行读取文件
+	// Read file line by line
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		default:
-			// 读取一行
+			// Read one line
 			line, err := reader.ReadString('\n')
 			if err != nil && err != io.EOF {
 				return err
 			}
 			if err == io.EOF && len(line) == 0 {
-				return nil // 文件读取完毕
+				return nil // File read completed
 			}
 
-			// 去除末尾的换行符和空格
+			// Trim trailing newlines and spaces
 			line = strings.TrimSpace(line)
 
-			// 将每行发送到 lineChan
+			// Send each line to lineChan
 			select {
 			case lineChan <- line:
 			case <-ctx.Done():
@@ -983,7 +983,7 @@ func (t *UtilTools) ReadFileLineReader(filePath string, lineChan chan<- string, 
 			}
 
 			if err == io.EOF {
-				return nil // 到达文件末尾，退出循环
+				return nil // Reached end of file, exit loop
 			}
 		}
 	}
@@ -992,29 +992,29 @@ func (t *UtilTools) ReadFileLineReader(filePath string, lineChan chan<- string, 
 func (t *UtilTools) ReadFileLineReaderBytes(filePath string, lineChan chan<- []byte, ctx context.Context) error {
 	defer close(lineChan)
 
-	// 检查文件是否存在
+	// Check whether file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return nil
 	} else if err != nil {
 		return err
 	}
 
-	// 打开文件
+	// Open file
 	file, err := os.Open(filePath)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	// 使用大缓冲区提高读取性能
-	reader := bufio.NewReaderSize(file, 30*1024) // 30KB 缓冲区
+	// Use a large buffer to improve read performance
+	reader := bufio.NewReaderSize(file, 30*1024) // 30KB buffer
 
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		default:
-			// 读取一行，ReadLine 返回 []byte
+			// Read a line, ReadLine returns []byte
 			lineBytes, isPrefix, err := reader.ReadLine()
 			if err != nil && err != io.EOF {
 				return err
@@ -1023,17 +1023,17 @@ func (t *UtilTools) ReadFileLineReaderBytes(filePath string, lineChan chan<- []b
 				return nil
 			}
 
-			// 如果行太长被分段，循环合并
-			fullLine := append([]byte(nil), lineBytes...) // 可选择深拷贝，避免被复用覆盖
+			// If line is too long and split, merge in a loop
+			fullLine := append([]byte(nil), lineBytes...) // Optionally deep copy to avoid being overwritten on reuse
 			for isPrefix {
 				lineBytes, isPrefix, _ = reader.ReadLine()
 				fullLine = append(fullLine, lineBytes...)
 			}
 
-			// 去除首尾空格
+			// Trim whitespace
 			fullLine = bytes.TrimSpace(fullLine)
 
-			// 发送到 channel
+			// Send to channel
 			select {
 			case lineChan <- fullLine:
 			case <-ctx.Done():
@@ -1060,10 +1060,10 @@ func (t *UtilTools) ReadFileToStringOptimized(filePath string, maxSizeMB int64) 
 	}
 	defer f.Close()
 
-	// MB 转字节
+	// MB to bytes
 	maxSize := maxSizeMB * 1024 * 1024
 
-	// 只允许读取前 maxSizeMB MB
+	// Only allow reading the first maxSizeMB MB
 	r := io.LimitReader(f, maxSize)
 
 	data, err := io.ReadAll(r)
@@ -1096,20 +1096,20 @@ func (t *UtilTools) WafCheck(ipStr string) (bool, string) {
 	return waf, s
 }
 
-// GetDomain 提取URL中的域名
+// GetDomain extract domain from URL
 func (t *UtilTools) GetDomain(rawUrl string) string {
-	// 解析 URL
+	// Parse URL
 	parsedUrl, err := url.Parse(rawUrl)
 	if err != nil {
 		return rawUrl
 	}
 
-	// 提取域名
+	// Extract domain
 	domain := parsedUrl.Host
 	if domain == "" {
 		return rawUrl
 	}
-	// 去掉端口号（如果有）
+	// Strip port number (if any)
 	domain = strings.Split(domain, ":")[0]
 
 	return domain
@@ -1121,10 +1121,10 @@ func removeDefaultPort(rawURL string) string {
 		return rawURL
 	}
 
-	// 检查端口并移除
+	// Check port and remove
 	if (parsedURL.Scheme == "http" && parsedURL.Port() == "80") ||
 		(parsedURL.Scheme == "https" && parsedURL.Port() == "443") {
-		parsedURL.Host = parsedURL.Hostname() // 去掉端口
+		parsedURL.Host = parsedURL.Hostname() // Strip port
 	}
 
 	return parsedURL.String()
@@ -1148,7 +1148,7 @@ func (t *UtilTools) HttpxResultToAssetHttp(r runner.Result) types.AssetHttp {
 		Hashes:       r.Hashes,
 		CDNName:      r.CDNName,
 		Port:         r.Port,
-		URL:          removeDefaultPort(r.URL), //去掉默认的80和443端口
+		URL:          removeDefaultPort(r.URL), //Strip default ports 80 and 443
 		Title:        r.Title,
 		Type:         "http",
 		Error:        r.Error,
@@ -1188,7 +1188,7 @@ func (t *UtilTools) IsMatchingFilter(fs []*regexp.Regexp, d []byte) bool {
 //		return ao
 //	}
 //
-// generateIPRange 生成 IP 范围
+// generateIPRange generate IP range
 func generateIPRange(start, end string) ([]string, error) {
 	startIP := net.ParseIP(start)
 	endIP := net.ParseIP(end)
@@ -1201,12 +1201,12 @@ func generateIPRange(start, end string) ([]string, error) {
 	for ip := startIP; !ip.Equal(endIP); incrementIP(ip) {
 		ipList = append(ipList, ip.String())
 	}
-	ipList = append(ipList, endIP.String()) // 添加结束 IP
+	ipList = append(ipList, endIP.String()) // Add end IP
 
 	return ipList, nil
 }
 
-// incrementIP 增加 IP 地址
+// incrementIP add IP address
 func incrementIP(ip net.IP) {
 	for j := len(ip) - 1; j >= 0; j-- {
 		ip[j]++
@@ -1216,7 +1216,7 @@ func incrementIP(ip net.IP) {
 	}
 }
 
-// ipRangeToSlice 将 IP 网络转换为字符串切片
+// ipRangeToSlice convert IP network to string slice
 func ipRangeToSlice(ipNet *net.IPNet) []string {
 	var ipList []string
 	for ip := ipNet.IP.Mask(ipNet.Mask); ipNet.Contains(ip); incrementIP(ip) {
@@ -1231,7 +1231,7 @@ func (t *UtilTools) GenerateTarget(target string) ([]string, error) {
 	}
 
 	if strings.Contains(target, "-") {
-		// 处理 IP 范围
+		// Handle IP range
 		parts := strings.Split(target, "-")
 		if len(parts) != 2 {
 			return []string{target}, nil
@@ -1246,7 +1246,7 @@ func (t *UtilTools) GenerateTarget(target string) ([]string, error) {
 	}
 
 	if strings.Contains(target, "/") {
-		// 处理网络
+		// Handle network
 		_, ipNet, err := net.ParseCIDR(target)
 		if err != nil {
 			return []string{target}, nil
@@ -1254,7 +1254,7 @@ func (t *UtilTools) GenerateTarget(target string) ([]string, error) {
 		return ipRangeToSlice(ipNet), nil
 	}
 
-	// 返回单个目标
+	// Return a single target
 	return []string{target}, nil
 }
 
@@ -1272,7 +1272,7 @@ func (t *UtilTools) GenerateIgnore(ignore string) ([]string, []*regexp.Regexp, e
 			}
 			ignoreList = append(ignoreList, result...)
 		} else {
-			// 转义并替换为正则表达式
+			// Escape and replace with regular expression
 			tEscaped := regexp.QuoteMeta(ta)
 			tEscaped = strings.ReplaceAll(tEscaped, `\*`, `.*`)
 			regex, err := regexp.Compile(tEscaped)
@@ -1288,20 +1288,20 @@ func (t *UtilTools) GenerateIgnore(ignore string) ([]string, []*regexp.Regexp, e
 func (t *UtilTools) IsSuffixURL(rawURL string, suffix string) bool {
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
-		fmt.Println("URL 解析错误:", err)
+		fmt.Println("URL parse error:", err)
 		return false
 	}
 
-	// 获取路径部分，去掉查询参数
+	// Get path part, strip query parameters
 	path := parsedURL.Path
 
-	// 判断路径是否以 ".js" 结尾
+	// Check whether path starts with ".js" end
 	return strings.HasSuffix(path, suffix)
 }
 
-// CompareContentSimilarity 计算编辑距离相似度
+// CompareContentSimilarity calculate edit distance similarity
 func (t *UtilTools) CompareContentSimilarity(content1, content2 string) (float64, error) {
-	// 使用编辑距离计算相似度
+	// Calculate similarity with edit distance
 	similarity, err := edlib.StringsSimilarity(content1, content2, edlib.Levenshtein)
 	if err != nil {
 		return 0, fmt.Errorf("error calculating similarity: %v", err)
@@ -1311,7 +1311,7 @@ func (t *UtilTools) CompareContentSimilarity(content1, content2 string) (float64
 	return result, nil
 }
 
-// UnzipSrcToDest 将文件src解压到dest
+// UnzipSrcToDest extract file src to dest
 func (t *UtilTools) UnzipSrcToDest(src string, dest string) error {
 	r, err := zip.OpenReader(src)
 	if err != nil {
@@ -1417,7 +1417,7 @@ func (t *UtilTools) UnzipFile(src, dest string) error {
 	return fmt.Errorf("unsupported file format: %s", src)
 }
 
-// RemoveStringDuplicates 数组去重
+// RemoveStringDuplicates array deduplication
 func (t *UtilTools) RemoveStringDuplicates(arr []string) []string {
 	unique := make(map[string]bool)
 	result := []string{}
@@ -1435,81 +1435,81 @@ func (t *UtilTools) RemoveStringDuplicates(arr []string) []string {
 func (t *UtilTools) HandleLinuxTemp() {
 	tempDir := "/tmp"
 
-	// 定义 Linux 下的 find 命令
+	// Define the Linux find command
 	findCmd := fmt.Sprintf(
 		`find %s -type d \( -regex '.*/[0-9]\{9\}' -o -name 'nuclei*' -o -name '.org.chromium.Chromium*' -o -name '*_badger' -o -name 'rod' \) -exec rm -rf {} +`,
 		tempDir,
 	)
 
-	// 执行命令
+	// Execute command
 	cmd := exec.Command("bash", "-c", findCmd)
 	_, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("执行 Linux find 命令时出错: %v\n", err)
-		logger.SlogWarn("清空临时文件出错，请手动清空/tmp目录，防止磁盘占用过大")
+		fmt.Printf("Error running the Linux find command: %v\n", err)
+		logger.SlogWarn("Error clearing temporary files, please clear the /tmp directory manually to avoid filling the disk")
 		return
 	}
 }
 
-// CompressAndEncodeScreenshot 压缩图片并返回 Base64 编码的字符串。
-// 它接收原始图片字节流 r.ScreenshotBytes，返回 Base64 编码的图片字符串。
-// 该函数会无损压缩 PNG 图像并缩小为原尺寸的 scaleFactor。 0.5 = 50%
+// CompressAndEncodeScreenshot compress the image and return a Base64-encoded string.
+// It takes the raw image bytes r.ScreenshotBytes and returns a Base64-encoded image string.
+// This function losslessly compresses a PNG image and scales it to scaleFactor of its original size. 0.5 = 50%
 func (t *UtilTools) CompressAndEncodeScreenshot(screenshotBytes []byte, scaleFactor float64) string {
 	if screenshotBytes == nil {
 		logger.SlogWarn("No screenshot data provided.")
 		return ""
 	}
 
-	// 创建字节缓冲区直接处理图像数据
+	// Create a byte buffer to process image data directly
 	var buf bytes.Buffer
 
-	// 使用 image.DecodeConfig 获取图像类型和尺寸，不加载整个图片
+	// Use image.DecodeConfig to get the image type and size without loading the whole image
 	config, _, err := image.DecodeConfig(bytes.NewReader(screenshotBytes))
 	if err != nil {
 		logger.SlogWarn(fmt.Sprintf("Error getting image config:", err))
-		return base64.StdEncoding.EncodeToString(screenshotBytes) // 返回原始 Base64 编码
+		return base64.StdEncoding.EncodeToString(screenshotBytes) // Return raw Base64 encoding
 	}
 
-	// 计算新的图片尺寸（通过缩放比例）
+	// Calculate new image size (by scale ratio)
 	newWidth := uint(float64(config.Width) * scaleFactor)
 	newHeight := uint(float64(config.Height) * scaleFactor)
 
-	// 解码并处理图片的流式操作
+	// Stream decode and process images
 	img, imgType, err := image.Decode(bytes.NewReader(screenshotBytes))
 	if err != nil {
 		logger.SlogWarn(fmt.Sprintf("Error decoding image:", err))
-		return base64.StdEncoding.EncodeToString(screenshotBytes) // 返回原始 Base64 编码
+		return base64.StdEncoding.EncodeToString(screenshotBytes) // Return raw Base64 encoding
 	}
 
-	// 压缩图片（无损或有损方式，调整尺寸）
+	// Compress image (lossless or lossy, resize)
 	compressedImg := resize.Resize(newWidth, newHeight, img, resize.Lanczos3)
 
-	// 根据图片格式进行不同的编码
+	// Encode differently based on image format
 	switch imgType {
 	case "jpeg":
-		// 使用有损压缩
+		// Use lossy compression
 		err = jpeg.Encode(&buf, compressedImg, nil)
 		if err != nil {
 			logger.SlogWarn(fmt.Sprintf("Error encoding JPEG image:", err))
-			return base64.StdEncoding.EncodeToString(buf.Bytes()) // 错误时返回 Base64 编码
+			return base64.StdEncoding.EncodeToString(buf.Bytes()) // Return Base64 encoding on error
 		}
 	case "png":
-		// 使用无损压缩
+		// Use lossless compression
 		err = png.Encode(&buf, compressedImg)
 		if err != nil {
 			logger.SlogWarn(fmt.Sprintf("Error encoding PNG image:", err))
-			return base64.StdEncoding.EncodeToString(buf.Bytes()) // 错误时返回 Base64 编码
+			return base64.StdEncoding.EncodeToString(buf.Bytes()) // Return Base64 encoding on error
 		}
 	default:
 		logger.SlogWarn(fmt.Sprintf("Unsupported image format:", imgType))
-		return base64.StdEncoding.EncodeToString(buf.Bytes()) // 默认返回 Base64 编码
+		return base64.StdEncoding.EncodeToString(buf.Bytes()) // Return Base64 encoding by default
 	}
 
-	// 返回压缩并编码后的 Base64 字符串
+	// Return the compressed and encoded Base64 string
 	return base64.StdEncoding.EncodeToString(buf.Bytes())
 }
 
-// Command 简介调用exec.Command
+// Command intro call exec.Command
 func (t *UtilTools) Command(name string, arg ...string) *exec.Cmd {
 	return exec.Command(name, arg...)
 }
@@ -1539,12 +1539,12 @@ func (t *UtilTools) MoveContents(srcDir, dstDir string) error {
 			return err
 		}
 
-		// 忽略根目录
+		// Ignore root directory
 		if path == srcDir {
 			return nil
 		}
 
-		// 计算目标路径
+		// Calculate target path
 		relPath, err := filepath.Rel(srcDir, path)
 		if err != nil {
 			return err
@@ -1554,7 +1554,7 @@ func (t *UtilTools) MoveContents(srcDir, dstDir string) error {
 		if info.IsDir() {
 			return os.MkdirAll(dstPath, info.Mode())
 		} else {
-			// 是文件就移动
+			// Move if it is a file
 			return t.MoveFile(path, dstPath)
 		}
 	})
@@ -1564,7 +1564,7 @@ func (t *UtilTools) MoveFile(src, dst string) error {
 	if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
 		return err
 	}
-	return os.Rename(src, dst) // 也可以先 copy 再删原文件，防止跨盘失败
+	return os.Rename(src, dst) // You can also copy first and then delete the original, to avoid cross-disk failures
 }
 
 func (t *UtilTools) EqualStringSlices(a, b []string) bool {
@@ -1585,16 +1585,16 @@ func (t *UtilTools) CommandExists(cmd string) bool {
 }
 
 func (t *UtilTools) IsJson(str string) bool {
-	// JSON 字符串通常以 `{` 开始，以 `}` 结束
+	// JSON strings usually start with `{` start, with `}` end
 	str = strings.TrimSpace(str)
 	if len(str) == 0 {
 		return false
 	}
 
-	// 简单检查是否以 `{` 开始，以 `}` 结束
+	// Simple check whether it starts with `{` start, with `}` end
 	if str[0] == '{' && str[len(str)-1] == '}' {
 		var js map[string]interface{}
-		// 尝试将字符串解析为 JSON 对象
+		// Try to parse the string as a JSON object
 		if err := json.Unmarshal([]byte(str), &js); err == nil {
 			return true
 		}
@@ -1603,16 +1603,16 @@ func (t *UtilTools) IsJson(str string) bool {
 }
 
 func (t *UtilTools) ModifyJSONValues(jsonStr string, value string) (string, error) {
-	// 解析 JSON 为 interface{}
+	// Parse JSON into interface{}
 	var data interface{}
 	if err := json.Unmarshal([]byte(jsonStr), &data); err != nil {
 		return "", err
 	}
 
-	// 替换所有值为 "test"
+	// Replace all values with "test"
 	updatedData := t.ReplaceValuesWithTest(data, value)
 
-	// 将修改后的数据重新编码为 JSON 字符串
+	// Re-encode the modified data as a JSON string
 	updatedJSON, err := json.Marshal(updatedData)
 	if err != nil {
 		return "", err
@@ -1622,23 +1622,23 @@ func (t *UtilTools) ModifyJSONValues(jsonStr string, value string) (string, erro
 }
 
 func (t *UtilTools) ReplaceValuesWithTest(data interface{}, value string) interface{} {
-	// 如果是 map 类型（JSON 对象），直接遍历并替换每个值
+	// If it is a map (JSON object), iterate and replace each value
 	if m, ok := data.(map[string]interface{}); ok {
 		for key := range m {
-			m[key] = value // 替换为 "test"
+			m[key] = value // Replace with "test"
 		}
 		return m
 	}
 
-	// 如果是 slice 类型（JSON 数组），直接遍历并替换每个值
+	// If it is a slice (JSON array), iterate and replace each value
 	if arr, ok := data.([]interface{}); ok {
 		for i := range arr {
-			arr[i] = value // 替换为 "test"
+			arr[i] = value // Replace with "test"
 		}
 		return arr
 	}
 
-	// 如果是其他类型（比如 string），直接返回 "test"
+	// If it is another type (e.g. string), return directly "test"
 	return value
 }
 
@@ -1653,7 +1653,7 @@ func (t *UtilTools) EscapeInvisibleKeepUnicode(s string) string {
 	dst := make([]byte, 0, len(s)*2)
 
 	for _, r := range s {
-		// unicode.IsPrint：判断是否可打印字符（中文、表情、字母、数字都返回 true）
+		// unicode.IsPrint: check whether a character is printable (CJK, emoji, letters and digits all return true)
 		if unicode.IsPrint(r) && r != '\uFFFD' {
 			dst = append(dst, string(r)...)
 		} else {

@@ -33,26 +33,26 @@ func main() {
 	//}
 	utils.InitializeDnsTools()
 	// Query
-	// 定义一个数组存储域名
+	// Define an array to store domains
 	domains := []string{
 		"dwassentrydwasdweqewqe.dwas",
 		"example.com",
 		"anotherdomain.test",
 	}
 
-	// 循环遍历域名数组
+	// Iterate over domain array
 	for _, domain := range domains {
 		resultDns := utils.DNS.QueryOne(domain)
 		tmp := utils.DNS.DNSdataToSubdomainResult(resultDns)
 		fmt.Printf("Domain: %s, Response: %s\n", domain, tmp)
 	}
-	// 记录程序结束时间
+	// Record program end time
 	end := time.Now()
 
-	// 计算时间差
+	// Calculate time difference
 	duration := end.Sub(start)
 
-	// 打印程序运行时间
-	fmt.Printf("程序运行时间: %v\n", duration)
+	// Print program run time
+	fmt.Printf("Program uptime: %v\n", duration)
 	return
 }

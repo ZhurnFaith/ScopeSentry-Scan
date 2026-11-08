@@ -57,7 +57,7 @@ func (p *Plugin) UnInstall() error {
 func (p *Plugin) Log(msg string, tp ...string) {
 	var logTp string
 	if len(tp) > 0 {
-		logTp = tp[0] // 使用传入的参数
+		logTp = tp[0] // Use the parameters passed in
 	} else {
 		logTp = "i"
 	}
@@ -122,7 +122,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 		return nil, errors.New("input is not a SubdomainResult")
 	}
 	if subdomain.Type == "CNAME" {
-		// 如果是CNAME类型的子域名，开始检查子域名接管
+		// If it is a CNAME subdomain, start checking for subdomain takeover
 		for _, t := range subdomain.Value {
 			for _, finger := range global.SubdomainTakerFingers {
 				for _, c := range finger.Cname {
@@ -149,8 +149,8 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 			}
 		}
 	}
-	// 无论是不是CNAME解析，都需要将host发送到
-	// 模块中已经发送了
+	// Whether or not it is a CNAME record, the host must be sent to
+	// Already sent in module
 	//result := types.DomainResolve{
 	//	Domain: subdomain.Host,
 	//	IP:     subdomain.IP,

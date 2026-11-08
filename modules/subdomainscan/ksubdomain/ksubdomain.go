@@ -63,7 +63,7 @@ func (p *Plugin) GetTaskId() string {
 func (p *Plugin) Log(msg string, tp ...string) {
 	var logTp string
 	if len(tp) > 0 {
-		logTp = tp[0] // 使用传入的参数
+		logTp = tp[0] // Use the parameters passed in
 	} else {
 		logTp = "i"
 	}
@@ -121,7 +121,7 @@ func (p *Plugin) Install() error {
 		return err
 	}
 	osType := runtime.GOOS
-	// 判断操作系统类型
+	// Check OS type
 	var path string
 	var dir string
 	switch osType {
@@ -210,7 +210,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 			}
 		}
 	} else {
-		logger.SlogError(fmt.Sprintf("ksubdomain 运行失败: 没有提供子域名字典，请查看任务配置"))
+		logger.SlogError(fmt.Sprintf("ksubdomain run failed: no subdomain dictionary provided, check the task configuration"))
 		return nil, nil
 	}
 	ctx := contextmanager.GlobalContextManagers.GetContext(p.GetTaskId())
@@ -219,7 +219,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 	go utils.Tools.ReadFileLineReader(subfile, subDictChan, ctx)
 	rawSubdomain := []string{}
 	dotIndex := strings.Index(target, "*.")
-	// 读取子域名字典
+	// Read subdomain dictionary
 	for result := range subDictChan {
 		if dotIndex != -1 {
 			tmpDomain := strings.Replace(target, "*", result, -1)
@@ -228,22 +228,22 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 			rawSubdomain = append(rawSubdomain, result+"."+target)
 		}
 	}
-	// 将原始域名增加到子域名列表
+	// Add the original domain to the subdomain list
 	rawSubdomain = append(rawSubdomain, target)
-	// 拼接完子域名之后开始运行验证子域名
+	// After building subdomains, start verifying them
 	subdomainVerificationResult := make(chan string, 100)
 	go utils.DNS.KsubdomainVerify(rawSubdomain, subdomainVerificationResult, time.Duration(executionTimeout)*time.Minute, ctx)
 	verificationCount := 0
-	// 读取结果
+	// Read result
 	for result := range subdomainVerificationResult {
 		subdomainResult := utils.DNS.KsubdomainResultToStruct(result)
 		if subdomainResult.Host != "" {
-			// wildcardDNSRecords记录的是生成的随机域名的解析结果，如果大于2，认为是存在泛解析，将此解析ip跳过
+			// wildcardDNSRecords records resolution results of generated random domains; more than 2 means wildcard DNS, so these IPs are skipped
 			if wildcardDNSRecordsLen >= 2 {
-				// 如果subdomainResult.IP中的某个IP存在于泛解析记录中，跳过
+				// If any IP in subdomainResult.IP is in the wildcard DNS records, skip
 				if isIPInWildcard(subdomainResult.IP, wildcardSubdomainResults) {
-					// 发现存在泛解析记录中的IP，跳过该结果
-					logger.SlogWarnLocal(fmt.Sprintf("%v 发现泛解析域名, 子域名: %v  IP: %v", target, subdomainResult.Host, subdomainResult.IP))
+					// Found an IP in the wildcard DNS records, skip this result
+					logger.SlogWarnLocal(fmt.Sprintf("%v wildcard DNS domain found, subdomain: %v  IP: %v", target, subdomainResult.Host, subdomainResult.IP))
 					continue
 				}
 			}
@@ -274,22 +274,22 @@ func wildcardDNSRecords(domain string) []string {
 	subdomainVerificationResult := make(chan string, 1)
 	go utils.DNS.KsubdomainVerify(targets, subdomainVerificationResult, 1*time.Hour, context.Background())
 	var results []string
-	// 读取结果
+	// Read result
 	for result := range subdomainVerificationResult {
 		subdomainResult := utils.DNS.KsubdomainResultToStruct(result)
 		if subdomainResult.Host != "" {
-			logger.SlogInfoLocal(fmt.Sprintf("ksubdomain target %v 发现泛解析IP：%v", domain, subdomainResult.IP))
+			logger.SlogInfoLocal(fmt.Sprintf("ksubdomain target %v Wildcard DNS IP found: %v", domain, subdomainResult.IP))
 			results = append(results, subdomainResult.IP...)
 		}
 	}
 	return results
 }
 
-// 判断是否有IP在泛解析记录中
+// Check whether any IP is in the wildcard DNS records
 func isIPInWildcard(ipList []string, wildcardDNSRecords []string) bool {
 	for _, ip := range ipList {
 		for _, wildcardIP := range wildcardDNSRecords {
-			// 如果某个ip在wildcardDNSRecords中，立即返回true
+			// If any ip is in wildcardDNSRecords, return immediately true
 			if ip == wildcardIP {
 				return true
 			}

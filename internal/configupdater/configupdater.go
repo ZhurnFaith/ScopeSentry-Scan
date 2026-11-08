@@ -27,7 +27,7 @@ import (
 	"path/filepath"
 )
 
-// UpdateGlobalModulesConfig 拉取server的全局模块配置
+// UpdateGlobalModulesConfig pull global module configuration from server
 func UpdateGlobalModulesConfig() {
 	logger.SlogInfoLocal("system config load begin")
 	var result ConfigResult
@@ -47,7 +47,7 @@ func UpdateGlobalModulesConfig() {
 func UpdateNodeModulesConfig() {
 	logger.SlogInfoLocal("node config load begin")
 	redisNodeName := "node:" + global.AppConfig.NodeName
-	// 从 Redis 中获取 nodeName 的值
+	// Get the nodeName value from Redis
 	modulesConfigString, err := redis.RedisClient.HGet(context.Background(), redisNodeName, "modulesConfig")
 	if err != nil {
 		if !errors.Is(err, goRedis.Nil) {
@@ -64,10 +64,10 @@ func UpdateNodeModulesConfig() {
 	logger.SlogInfoLocal("node config load end")
 }
 
-// UpdateDictionary 更新字典文件
+// UpdateDictionary update dictionary file
 func UpdateDictionary(id string) {
 	logger.SlogInfoLocal("UpdateDictionary load begin")
-	var results map[string][]byte // 根据实际数据结构定义类型
+	var results map[string][]byte // Define types based on the actual data structure
 	var err error
 	if id == "all" {
 		results, err = mongodb.MongodbClient.FindFilesByPattern(".*")
@@ -185,9 +185,9 @@ func UpdateProject() {
 	}
 	global.Projects = []types.Project{}
 	for _, tmpProj := range tmpProjects {
-		// 创建一个 types.Project 类型的值
+		// Create a value of type types.Project
 		var proj types.Project
-		// 将 tmpProject 的值赋给 types.Project 的对应字段
+		// Assign tmpProject values to the corresponding types.Project fields
 		proj.ID = tmpProj.ID.Hex()
 		proj.Target = tmpProj.RootDomains
 		ignoreList, regexList, err := utils.Tools.GenerateIgnore(tmpProj.Ignore)
@@ -216,10 +216,10 @@ func LoadPoc(id []string) {
 	_, err := os.Stat(filePath)
 	existFlag := false
 	if err == nil {
-		existFlag = true // 文件存在
+		existFlag = true // File exists
 	}
 	var tmpPocR []tmpPoc
-	// 加载所有poc
+	// Load all poc
 	if len(id) == 0 {
 		if !existFlag {
 			if err := mongodb.MongodbClient.FindAll("PocList", bson.M{}, bson.M{"_id": 1, "content": 1, "name": 1, "level": 1}, &tmpPocR); err != nil {
@@ -238,7 +238,7 @@ func LoadPoc(id []string) {
 			objectIDs = append(objectIDs, objID)
 		}
 
-		// 查询指定的 id
+		// Query the specified id
 		filter := bson.M{"_id": bson.M{"$in": objectIDs}}
 		if err := mongodb.MongodbClient.FindAll("PocList", filter, bson.M{"_id": 1, "content": 1, "name": 1, "level": 1}, &tmpPocR); err != nil {
 			logger.SlogError(fmt.Sprintf("Get Poc List by ID error: %s", err))

@@ -3,7 +3,7 @@ FROM python:3.7-slim
 WORKDIR /apps
 COPY msyh.ttc /usr/share/fonts/
 
-# 更新软件包列表并安装必要的软件包
+# Update package list and install required packages
 RUN apt-get update && apt-get install -y \
     libexif-dev \
     udev \
@@ -15,12 +15,12 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 #    tini \
-# 设置 tini 作为 init 进程（PID 1）
+# Set tini as the init process (PID 1)
 # ENTRYPOINT ["/usr/bin/tini", "--"]
 
 
 RUN pip install uro
-# 拷贝当前目录下的可执行文件到容器中
+# Copy the executable in the current directory into the container
 COPY dist/ScopeSentry-Scan_linux_amd64_v1/ScopeSentry-Scan /apps/ScopeSentry-Scan
 RUN chmod +x /apps/ScopeSentry-Scan
 RUN mkdir /apps/ext
@@ -38,12 +38,12 @@ RUN chmod +x /apps/ext/rustscan/rustscan
 
 COPY tools/linux/katana /apps/ext/katana/katana
 RUN chmod +x /apps/ext/katana/katana
-# 设置时区为上海
+# Set time zone to Shanghai
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 RUN echo 'Asia/Shanghai' >/etc/timezone
 
-# 设置编码
+# Set encoding
 ENV LANG C.UTF-8
 
-# 运行golang程序的命令
+# Command to run golang program
 ENTRYPOINT ["/apps/ScopeSentry-Scan"]

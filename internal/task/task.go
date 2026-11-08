@@ -31,20 +31,20 @@ import (
 )
 
 func GetTask() {
-	// 运行本地缓存的任务
+	// Run locally cached tasks
 	//RunPebbledbTask()
-	// 从redis获取任务
+	// Get task from redis
 	RunRedisTask()
 }
 
-// RunPebbledbTask 运行本地缓存任务
+// RunPebbledbTask run local cached tasks
 func RunPebbledbTask(value []byte) {
 	logger.SlogInfoLocal(fmt.Sprintf("get PebbleStore task: %v", string(value)))
 	var runnerOption options.TaskOptions
 	err := utils.Tools.JSONToStruct(value, &runnerOption)
-	// 任务增加全局上下文
+	// Add global context to task
 	contextmanager.GlobalContextManagers.AddContext(runnerOption.ID)
-	// 设置为本地获取的任务
+	// Set to the locally fetched task
 	runnerOption.IsRestart = true
 	if err != nil {
 		logger.SlogErrorLocal(fmt.Sprintf("task JSONToStruct error: %v - %v", string(value), err))
@@ -54,25 +54,25 @@ func RunPebbledbTask(value []byte) {
 		}
 		return
 	}
-	// 运行任务目标
+	// Run task targets
 	RunPebbleTarget(runnerOption)
-	// 任务运行完毕删除任务 更新放到redis task中删除一次
+	// Delete the task when it finishes; the update is deleted once in the redis task
 	//err = pebbledb.PebbleStore.Delete([]byte(key))
 	//if err != nil {
 	//	logger.SlogErrorLocal(fmt.Sprintf("PebbleStore Delete %v error: %v", key, err))
 	//}
 	logger.SlogInfoLocal(fmt.Sprintf("PebbleStore task run end: %v", runnerOption.ID))
 	//if len(keys) > 0 {
-	//	// 打印所有以 "task:" 开头的键值对
+	//	// Print all with "task:" key-value pairs starting with
 	//	for key, value := range keys {
 	//
 	//	}
-	//	// 关闭nuclei引擎
+	//	// Close nuclei engine
 	//	handler.CloseNucleiEngine()
 	//}
 }
 
-// RunRedisTask 从redis中获取任务
+// RunRedisTask get task from redis
 func RunRedisTask() {
 	ticker := time.Tick(3 * time.Second)
 	for {
@@ -100,7 +100,7 @@ func RunRedisTask() {
 				logger.SlogError(fmt.Sprintf("Task parse error: %s", err))
 				continue
 			}
-			// 运行一些任务初始化的方法
+			// Run task initialization methods
 			InitTaskOption(runnerOption)
 			global.TaskName = runnerOption.TaskName
 
@@ -108,7 +108,7 @@ func RunRedisTask() {
 
 			logger.SlogInfo(fmt.Sprintf("Task begin: %v %v", runnerOption.ID, runnerOption.TaskName))
 			if runnerOption.Type == "page_monitoring" {
-				// 运行页面监控程序
+				// Run page monitoring
 				go func() {
 					for {
 						targets, err := redis.RedisClient.BatchGetAndDelete(context.Background(), "TaskInfo:"+runnerOption.ID, 50)
@@ -116,10 +116,10 @@ func RunRedisTask() {
 							break
 						}
 						if err != nil {
-							// 如果 err 不为空，并且不是 redis.Nil 错误，则打印错误信息
+							// If err is not nil and is not redis.Nil, print the error
 							if !errors.Is(err, goRedis.Nil) {
 								logger.SlogError(fmt.Sprintf("GetRedisTask BatchGetAndDelete error: %v", err))
-								// 如果获取任务出错了 直接退出 防止删除本地任务 重启之后重新获取本地任务开始执行
+								// If getting the task fails, exit directly so local tasks are not deleted; after a restart, local tasks are fetched again
 								os.Exit(0)
 							}
 							break
@@ -128,12 +128,12 @@ func RunRedisTask() {
 					}
 				}()
 			} else {
-				// 开启被动扫描
+				// Enable passive scan
 				passiveOptionCopy := runnerOption
 				passivescan.SetPassiveScanChan(&passiveOptionCopy)
 
 				cacheRunFlag := false
-				// 如果本地存在该任务 后台运行本地缓存任务，这里主要是在节点崩溃重启后可以继续运行，如果是任务暂停，本地的任务信息会被删除，这里不会运行，不会造成暂停失败
+				// If the task exists locally, run the locally cached task in the background; this lets nodes resume after a crash. If the task was paused, local task info is deleted, so nothing runs here and pausing does not fail
 				value, _ := pebbledb.PebbleStore.Get([]byte(taskKey))
 				if value != nil {
 					cacheRunFlag = true
@@ -145,7 +145,7 @@ func RunRedisTask() {
 					time.Sleep(5 * time.Second)
 				}
 
-				// 将任务配置写入本地
+				// Write task configuration locally
 				runnerOption.IsRestart = false
 				err = pebbledb.PebbleStore.Put([]byte(taskKey), []byte(taskInfo))
 				if err != nil {
@@ -153,9 +153,9 @@ func RunRedisTask() {
 					continue
 				}
 
-				// 任务增加全局上下文
+				// Add global context to task
 				contextmanager.GlobalContextManagers.AddContext(runnerOption.ID)
-				// 如果任务是暂停后开始的并且前边没有缓存的本地任务，则先运行本地缓存的目标
+				// If the task resumed after a pause and there was no locally cached task before, run the locally cached targets first
 				if runnerOption.IsStart && !cacheRunFlag {
 					runnerOption.IsRestart = false
 					wg.Add(1)
@@ -174,10 +174,10 @@ func RunRedisTask() {
 					default:
 						target, err := redis.RedisClient.PopFromListR(context.Background(), "TaskInfo:"+runnerOption.ID)
 						if err != nil {
-							// 如果 err 不为空，并且不是 redis.Nil 错误，则打印错误信息
+							// If err is not nil and is not redis.Nil, print the error
 							if !errors.Is(err, goRedis.Nil) {
 								logger.SlogError(fmt.Sprintf("GetRedisTask redis error: %v", err))
-								// 如果获取任务出错了 直接退出 防止删除本地任务 重启之后重新获取本地任务开始执行
+								// If getting the task fails, exit directly so local tasks are not deleted; after a restart, local tasks are fetched again
 								os.Exit(0)
 							}
 							break loop
@@ -190,32 +190,32 @@ func RunRedisTask() {
 								defer wg.Done()
 								select {
 								case <-contextmanager.GlobalContextManagers.GetContext(op.ID).Done():
-									// 任务取消直接返回
+									// Return directly if task canceled
 									return
 								default:
 									err := runner.Run(op)
 									if err != nil {
-										// 说明该任务取消了，直接返回不进行删除目标
+										// The task was canceled, return without deleting the target
 										return
 									} else {
-										// 目标运行完毕删除目标
+										// Delete target after it finishes running
 										DeletePebbleTarget(pebbledb.PebbleStore, []byte(op.ID+":"+op.Target))
 									}
 								}
 							}
 						}(optionCopy)
-						// 将任务目标写入本地
+						// Write task targets locally
 						err = pebbledb.PebbleStore.Put([]byte(fmt.Sprintf("%v:%v", runnerOption.ID, target)), []byte(""))
 						if err != nil {
 							logger.SlogError(fmt.Sprintf("PebbleStore.Put target error: %v", err))
 						}
-						// 提交任务
+						// Submit task
 						err = pool.PoolManage.SubmitTask("task", taskFunc)
 						if err != nil {
 							logger.SlogError(fmt.Sprintf("task pool error: %v", err))
 							wg.Done()
 						}
-						// 防止单个节点刷新目标太快 导致其他节点没有分配到目标
+						// Prevent a single node from taking targets too fast and starving other nodes
 						time.Sleep(3 * time.Second)
 						logger.SlogInfoLocal(fmt.Sprintf("task target pool running goroutines: %v", pool.PoolManage.GetModuleRunningGoroutines("task")))
 					}
@@ -224,31 +224,31 @@ func RunRedisTask() {
 				wg.Wait()
 				passivescan.PassiveScanChanDone(runnerOption.ID)
 				passivescan.PassiveScanWgMap[runnerOption.ID].Wait()
-				// 删除任务上下文
+				// Delete task context
 				contextmanager.GlobalContextManagers.DeleteContext(runnerOption.ID)
 			}
 			logger.SlogInfo(fmt.Sprintf("Task end: %v - %v", runnerOption.ID, runnerOption.TaskName))
 			handler.CloseNucleiEngine()
-			// 目标运行完毕 删除任务信息
-			// 删除本地缓存任务信息
+			// Target finished, delete task info
+			// Delete locally cached task info
 			err = pebbledb.PebbleStore.Delete([]byte(taskKey))
 			if err != nil {
 				logger.SlogErrorLocal(fmt.Sprintf("PebbleStore Delete %v error: %v", taskKey, err))
 			}
-			// 任务结束重新初始化缓存
+			// Reinitialize cache when task ends
 			err = bigcache.Initialize()
 			if err != nil {
 				logger.SlogErrorLocal(fmt.Sprintf("bigcache Initialize error: %v", err))
 			}
-			// 弹出任务信息
+			// Show task info
 			_ = handler.TaskHandle.PopTaskId(runnerOption.ID)
-			// 任务结束运行关闭方法
+			// Close method run when task ends
 			OptionClose()
-			// 清除全局变量
+			// Clear global variables
 			CleanGlobal()
-			// 清空文件锁
+			// Clear file lock
 			utils.Tools.ClearAllLocks()
-			// 运行任务结束相关的方法
+			// Run task end methods
 			logger.SlogInfo(fmt.Sprintf("Task clean end: %v", runnerOption.ID))
 		}
 	}

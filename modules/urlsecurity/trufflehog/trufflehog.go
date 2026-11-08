@@ -71,7 +71,7 @@ func (p *Plugin) GetTaskId() string {
 func (p *Plugin) Log(msg string, tp ...string) {
 	var logTp string
 	if len(tp) > 0 {
-		logTp = tp[0] // 使用传入的参数
+		logTp = tp[0] // Use the parameters passed in
 	} else {
 		logTp = "i"
 	}
@@ -197,10 +197,10 @@ func newMatchCollector() *matchCollector {
 	}
 }
 
-// Add 方法使用锁保护
+// Add method protected by lock
 func (mc *matchCollector) Add(ruleName, match string) {
-	mc.mu.Lock()         // 上锁
-	defer mc.mu.Unlock() // 解锁
+	mc.mu.Lock()         // Lock
+	defer mc.mu.Unlock() // Unlock
 
 	existList := mc.matchMap[ruleName]
 	for _, m := range existList {
@@ -221,12 +221,12 @@ func (mc *matchCollector) GetAll() map[string][]string {
 var scannerLocks = sync.Map{}
 
 func getScannerLock(name string) *sync.Mutex {
-	// 尝试从 map 中获取已有锁
+	// Try to get an existing lock from the map
 	if lock, ok := scannerLocks.Load(name); ok {
 		return lock.(*sync.Mutex)
 	}
 
-	// 否则创建一个新的锁，并原子保存（只存一次）
+	// Otherwise create a new lock and store it atomically (only once)
 	newLock := &sync.Mutex{}
 	actual, _ := scannerLocks.LoadOrStore(name, newLock)
 	return actual.(*sync.Mutex)
@@ -256,7 +256,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 	if data.Body == "" {
 		return nil, nil
 	}
-	// 检查body是否在当前任务已经检测过
+	// Check whether body was already checked in the current task
 	respMd5 := utils.Tools.HashXX64String(data.Body)
 	duplicateFlag := results.Duplicate.SensitiveBody(respMd5, p.TaskId, "truffle")
 	ctx := contextmanager.GlobalContextManagers.GetContext(p.GetTaskId())
@@ -323,7 +323,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 			default:
 			}
 			str := strings.ToLower(chunk)
-			matches := matcher.Match([]byte(str)) // 一次性找出所有关键词出现的位置（下标）
+			matches := matcher.Match([]byte(str)) // Find all keyword positions (indexes) at once
 			matchedScanners := make(map[string]bool)
 			for _, idx := range matches {
 				scannerNames := keywordIndexToScanners[idx]
@@ -415,7 +415,7 @@ func GenerateChunks(text string, chunkSize, overlapSize int, thread int) <-chan 
 func processInChunks(scanner detectors.Detector, text string, chunkSize int, overlapSize int, ctx context.Context, verify bool) ([]detectors.Result, error) {
 	var result []detectors.Result
 	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-	// 确保在函数结束时调用 cancel 以释放资源
+	// Ensure cancel is called when the function ends to release resources
 	defer cancel()
 	for start := 0; start < len(text); start += chunkSize {
 		end := start + chunkSize
@@ -460,13 +460,13 @@ func findMatchesInChunk(regex *regexp2.Regexp, text string) ([]string, error) {
 }
 
 func uniqueStrings(input []string) []string {
-	// 创建一个映射来记录出现过的字符串
+	// Create a map to record seen strings
 	seen := make(map[string]bool)
 	var result []string
 
-	// 遍历输入的切片
+	// Iterate over input slice
 	for _, str := range input {
-		// 如果该字符串还未出现，则添加到结果切片和映射中
+		// If the string has not been seen, add it to the result slice and map
 		if !seen[str] {
 			seen[str] = true
 			result = append(result, str)

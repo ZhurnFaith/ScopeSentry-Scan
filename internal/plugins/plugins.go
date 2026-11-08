@@ -40,13 +40,13 @@ import (
 )
 
 type PluginManager struct {
-	plugins map[string]map[string]interfaces.Plugin // 存储插件，按模块和名称索引
+	plugins map[string]map[string]interfaces.Plugin // Store plugins indexed by module and name
 	mu      sync.RWMutex
 }
 
 var GlobalPluginManager *PluginManager
 
-// NewPluginManager 创建一个新的 PluginManager 实例
+// NewPluginManager create a new PluginManager instance
 func NewPluginManager() *PluginManager {
 	return &PluginManager{
 		plugins: make(map[string]map[string]interfaces.Plugin),
@@ -78,9 +78,9 @@ func (pm *PluginManager) GetPlugin(module, id string) (interfaces.Plugin, bool) 
 	if modPlugins, ok := pm.plugins[module]; ok {
 		plugin, ok := modPlugins[id]
 		if ok {
-			return plugin.Clone(), ok // 返回新实例
+			return plugin.Clone(), ok // Return new instance
 		} else {
-			// 插件未注册成功
+			// Plugin registration failed
 			plg, err := LoadCustomPlugin(filepath.Join(global.PluginDir, module, fmt.Sprintf("%v.go", id)), module, id)
 			if err != nil {
 				err = LoadPlugFromDB(id)
@@ -127,12 +127,12 @@ func LoadPlugFromDB(hash string) error {
 	return nil
 }
 
-// InitializePlugins 初始化插件
+// InitializePlugins initialize plugin
 func (pm *PluginManager) InitializePlugins() error {
 	// TargetParser
 	targetparserPlugin := targetparser.NewPlugin()
 	pm.RegisterPlugin("TargetHandler", targetparserPlugin.PluginId, targetparserPlugin)
-	// SubdomainScan模块
+	// SubdomainScan module
 	// subfinder
 	subfinderPlugin := subfinder.NewPlugin()
 	pm.RegisterPlugin(subfinderPlugin.Module, subfinderPlugin.PluginId, subfinderPlugin)
@@ -140,19 +140,19 @@ func (pm *PluginManager) InitializePlugins() error {
 	ksubdomainPlugin := ksubdomain.NewPlugin()
 	pm.RegisterPlugin(ksubdomainPlugin.Module, ksubdomainPlugin.PluginId, ksubdomainPlugin)
 
-	// SubdomainSecurity模块
+	// SubdomainSecurity module
 	subdomainTakeoverPlugin := subdomaintakeover.NewPlugin()
 	pm.RegisterPlugin(subdomainTakeoverPlugin.Module, subdomainTakeoverPlugin.PluginId, subdomainTakeoverPlugin)
 
-	// 端口扫描预处理
+	// Port scan preprocessing
 	skipcdnPlugin := skipcdn.NewPlugin()
 	pm.RegisterPlugin(skipcdnPlugin.Module, skipcdnPlugin.PluginId, skipcdnPlugin)
 
-	// 端口扫描rustscan
+	// Port scan rustscan
 	rustscanPlugin := rustscan.NewPlugin()
 	pm.RegisterPlugin(rustscanPlugin.Module, rustscanPlugin.PluginId, rustscanPlugin)
 
-	// 端口指纹识别
+	// Port fingerprinting
 	fingerprintxPlugin := fingerprintx.NewPlugin()
 	pm.RegisterPlugin(fingerprintxPlugin.Module, fingerprintxPlugin.PluginId, fingerprintxPlugin)
 
@@ -204,15 +204,15 @@ func (pm *PluginManager) InitializePlugins() error {
 		}
 	}
 	nodePlgInfokey := fmt.Sprintf("NodePlg:%v", global.AppConfig.NodeName)
-	// 执行插件的安装和check
-	// 0 代表未安装 1代表安装失败 2代表安装成功，未检查 3代表安装成功，检查失败 4代表安装检查都成功
+	// Run plugin installation and check
+	// 0 means not installed, 1 install failed, 2 installed but not checked, 3 installed but check failed, 4 installed and checked
 	for module, plugins := range pm.plugins {
 		for name, plugin := range plugins {
 			plgInfo := map[string]interface{}{
 				plugin.GetPluginId() + "_install": 0,
 				plugin.GetPluginId() + "_check":   0,
 			}
-			// 调用每个插件的 Install 函数
+			// Call each plugin's Install function
 			if err := plugin.Install(); err != nil {
 				plgInfoErr := redis.RedisClient.HMSet(context.Background(), nodePlgInfokey, plgInfo)
 				if plgInfoErr != nil {
@@ -222,7 +222,7 @@ func (pm *PluginManager) InitializePlugins() error {
 				continue
 			}
 			plgInfo[plugin.GetPluginId()+"_install"] = 1
-			// 调用每个插件的 Check 函数
+			// Call each plugin's Check function
 			if err := plugin.Check(); err != nil {
 				plgInfoErr := redis.RedisClient.HMSet(context.Background(), nodePlgInfokey, plgInfo)
 				if plgInfoErr != nil {

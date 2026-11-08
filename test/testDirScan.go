@@ -22,19 +22,19 @@ package main
 //
 //func main() {
 //	//dirScanMode.GETRequest("https://hackerone.com")
-//	// 打开文件
+//	// Open file
 //	//if err != nil {
 //	//}
 //	//defer file.Close()
 //	//
-//	//// 创建 Scanner 对象
+//	//// Create Scanner object
 //	//scanner := bufio.NewScanner(file)
 //	//var urls []string
 //	//
-//	//// 逐行读取文件内容
+//	//// Read file content line by line
 //	//for scanner.Scan() {
 //	//	line := scanner.Text()
-//	//	// 将每行内容存入数组
+//	//	// Store each line in an array
 //	//	urls = append(urls, ""+line)
 //	//}
 //	//
@@ -47,7 +47,7 @@ package main
 //	//end := time.Now()
 //	//fmt.Println(end)
 //	//duration := end.Sub(start)
-//	//fmt.Println("程序运行时间:", duration)
+//	//fmt.Println("Program uptime:", duration)
 //	//util.DoGet("http://test:666/a.php")
 //	go func() {
 //		_ = http.ListenAndServe("0.0.0.0:6060", nil)

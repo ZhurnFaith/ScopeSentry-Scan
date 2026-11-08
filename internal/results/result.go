@@ -43,7 +43,7 @@ func (r *result) Insert(name string, result *[]interface{}) bool {
 		if errors.As(err, &writeException) {
 			if name == "PageMonitoring" || name == "PageMonitoringBody" {
 				for _, wErr := range writeException.WriteErrors {
-					logger.SlogWarnLocal(fmt.Sprintf("插入失败的文档: %v, 错误: %v\n", wErr))
+					logger.SlogWarnLocal(fmt.Sprintf("Failed to insert document: %v, error: %v\n", wErr))
 				}
 			}
 		}
@@ -54,27 +54,27 @@ func (r *result) Insert(name string, result *[]interface{}) bool {
 }
 
 func (r *result) Update(result *[]interface{}, name string) bool {
-	// 将 *[]interface{} 转换为 []types.BulkUpdateOperation
+	// Will *[]interface{} convert to []types.BulkUpdateOperation
 	var operations []mongo.WriteModel
 
-	// 遍历传入的 result，逐一进行类型断言并构建 WriteModel
+	// Iterate over the passed result, type assert each and build WriteModel
 	for _, item := range *result {
-		// 类型断言将 item 转换为 types.BulkUpdateOperation
+		// Type assertion converts item to types.BulkUpdateOperation
 		op, ok := item.(types.BulkUpdateOperation)
 		if !ok {
 			fmt.Println("Type assertion failed: item is not of type types.BulkUpdateOperation")
 			return false
 		}
 
-		// 将 BulkUpdateOperation 转换为 mongo.UpdateOneModel 并添加到 operations 中
+		// Convert BulkUpdateOperation into mongo.UpdateOneModel and add it to operations
 		updateModel := mongo.NewUpdateOneModel().
 			SetFilter(op.Selector).
 			SetUpdate(op.Update).
-			SetUpsert(true) // 设置 Upsert 为 true，如果没有匹配文档，则插入新的文档
+			SetUpsert(true) // Set Upsert to true so a new document is inserted when none matches
 
 		operations = append(operations, updateModel)
 	}
-	// 调用 BulkWrite 批量写入或更新操作
+	// Call BulkWrite for batch write or update operations
 	_, err := mongodb.MongodbClient.BulkWrite(name, operations)
 	if err != nil {
 		fmt.Println("Error during bulk write:", err)
@@ -84,17 +84,17 @@ func (r *result) Update(result *[]interface{}, name string) bool {
 }
 
 func (r *result) UpdateNow(op types.BulkUpdateOperation, name string) bool {
-	// 将 *[]interface{} 转换为 []types.BulkUpdateOperation
+	// Will *[]interface{} convert to []types.BulkUpdateOperation
 	var operations []mongo.WriteModel
 
-	// 将 BulkUpdateOperation 转换为 mongo.UpdateOneModel 并添加到 operations 中
+	// Convert BulkUpdateOperation into mongo.UpdateOneModel and add it to operations
 	updateModel := mongo.NewUpdateOneModel().
 		SetFilter(op.Selector).
 		SetUpdate(op.Update).
-		SetUpsert(true) // 设置 Upsert 为 true，如果没有匹配文档，则插入新的文档
+		SetUpsert(true) // Set Upsert to true so a new document is inserted when none matches
 
 	operations = append(operations, updateModel)
-	// 调用 BulkWrite 批量写入或更新操作
+	// Call BulkWrite for batch write or update operations
 	_, err := mongodb.MongodbClient.BulkWrite(name, operations)
 	if err != nil {
 		fmt.Println("Error during bulk write:", err)
@@ -110,40 +110,40 @@ func (r *result) InsertVulnerabilityScan(result *[]interface{}) {
 	for _, v := range *result {
 		var vulnResult *types.VulnResult
 
-		// 第一种：*types.VulnResult
+		// Option 1: *types.VulnResult
 		if vr, ok := v.(*types.VulnResult); ok {
 			vulnResult = vr
 		}
 
-		// 第二种：**types.VulnResult
+		// Option 2: **types.VulnResult
 		if vrPtr, ok := v.(**types.VulnResult); ok && vrPtr != nil {
 			vulnResult = *vrPtr
 		}
 
 		if vulnResult == nil {
-			fmt.Println("类型断言失败:", reflect.TypeOf(v))
+			fmt.Println("Type assertion failed:", reflect.TypeOf(v))
 			continue
 		}
 
-		// 生成唯一 Hash
+		// Generate unique Hash
 		vulnResult.Hash = utils.Tools.GenerateRandomString(16)
 
-		// 保存详细信息
+		// Save details
 		vulDetails = append(vulDetails, types.VulnerabilityDetail{
 			Hash:     vulnResult.Hash,
 			Request:  vulnResult.Request,
 			Response: vulnResult.Response,
 		})
 
-		// 清空请求与响应
+		// Clear request and response
 		vulnResult.Request = ""
 		vulnResult.Response = ""
 
-		// 放回新的结果集
+		// Put back new result set
 		newVulnResults = append(newVulnResults, vulnResult)
 	}
 
-	// 写入数据库
+	// Write to database
 	r.Insert("vulnerability", &newVulnResults)
 	r.Insert("vulnerabilityDetail", &vulDetails)
 }

@@ -25,7 +25,7 @@ type Runner struct {
 	Input      chan interface{}
 }
 
-func NewRunner(op *options.TaskOptions, nextModule interfaces.ModuleRunner) *Runner { // 同样改为值类型
+func NewRunner(op *options.TaskOptions, nextModule interfaces.ModuleRunner) *Runner { // Also changed to value type
 	return &Runner{
 		Option:     op,
 		NextModule: nextModule,
@@ -40,7 +40,7 @@ func (r *Runner) ModuleRun() error {
 	var wg sync.WaitGroup
 	handler.TaskHandle.ProgressStart(r.GetName(), r.Option.Target, r.Option.ID, len(r.Option.PassiveScan))
 	start = time.Now()
-	// 调用插件
+	// Call plugin
 	for _, pluginId := range r.Option.PassiveScan {
 		plg, flag := plugins.GlobalPluginManager.GetPlugin(r.GetName(), pluginId)
 		if flag {
@@ -87,7 +87,7 @@ func (r *Runner) ModuleRun() error {
 				closePlgFunc()
 				return nil
 			}
-			// 获取到输入数据 通过SetCustom发送到插件中，这里为了兼容之前的，使用SetCustom传递数据，不增加新的函数
+			// Pass the input data to the plugin via SetCustom; SetCustom is used for compatibility instead of adding a new function
 			for _, pluginId := range r.Option.PassiveScan {
 				plg, flag := plugins.GlobalPluginManager.GetPlugin(r.GetName(), pluginId)
 				if flag {
@@ -120,17 +120,17 @@ func (r *Runner) CloseInput() {
 }
 
 var TaskPassiveScanGlobal = make(map[string]chan interface{})
-var mu sync.Mutex // 声明一个互斥锁
+var mu sync.Mutex // Declare a mutex
 var PassiveScanWgMap = make(map[string]*sync.WaitGroup)
 
 func SetPassiveScanChan(op *options.TaskOptions) {
-	mu.Lock()         // 获取锁，确保只有一个 goroutine 能修改 map
-	defer mu.Unlock() // 函数结束时释放锁
+	mu.Lock()         // Acquire the lock to ensure only one goroutine can modify map
+	defer mu.Unlock() // Release lock when function ends
 
-	// 检查 id 是否已经存在
+	// Check whether id already exists
 	if _, exists := TaskPassiveScanGlobal[op.ID]; !exists {
 		logger.SlogInfo(fmt.Sprintf("passive scan begin: %v", op.ID))
-		// 如果不存在，则创建一个新的 chan 并添加到字典
+		// If it does not exist, create a new chan and add it to the map
 		vulnerabilityInputChan := make(chan interface{}, 2000)
 		TaskPassiveScanGlobal[op.ID] = vulnerabilityInputChan
 		passivescanModule := NewRunner(op, nil)

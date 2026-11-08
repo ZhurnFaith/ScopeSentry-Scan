@@ -90,7 +90,7 @@ func CleanPath(path string) string {
 func Unquote(s string) string {
 	unquoted, err := url.QueryUnescape(s)
 	if err != nil {
-		// 如果解码出现错误，返回原始数据
+		// If decoding fails, return raw data
 		return s
 	}
 	return unquoted

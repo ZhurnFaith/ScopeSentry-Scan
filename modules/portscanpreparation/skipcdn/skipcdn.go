@@ -56,7 +56,7 @@ func (p *Plugin) GetTaskId() string {
 func (p *Plugin) Log(msg string, tp ...string) {
 	var logTp string
 	if len(tp) > 0 {
-		logTp = tp[0] // 使用传入的参数
+		logTp = tp[0] // Use the parameters passed in
 	} else {
 		logTp = "i"
 	}
@@ -122,7 +122,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 	if domainSkip.Skip {
 		return nil, nil
 	}
-	// 当ip为多个时判断为cdn，如果是一个ip，再利用cdncheck检测
+	// Treat multiple IPs as cdn; with a single IP, check with cdncheck
 	if len(domainSkip.IP) > 1 {
 		domainSkip.Skip = true
 		return nil, nil
@@ -134,7 +134,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 			flagWaf, wafValue := utils.Tools.WafCheck(domainSkip.IP[0])
 			if flagWaf {
 				WafName := make(map[string]bool)
-				WafName["cloudflare"] = true // 初始值
+				WafName["cloudflare"] = true // Initial value
 				parameter := p.GetParameter()
 				if parameter != "" {
 					args, err := utils.Tools.ParseArgs(parameter, "waf")

@@ -65,14 +65,14 @@ func FuzzGet(uri string, id string, header map[string]string, wg *sync.WaitGroup
 		builder.WriteString(GetKeyValue(key, id, "1", dnslog))
 
 		if builder.Len() > 1000 {
-			// 去掉首个 '&'
+			// Remove first '&'
 			paramStr := builder.String()[1:]
 			wg.Add(1)
 			go func(p string) {
 				defer wg.Done()
 				FuzzHttpGetNoResWithCustomHeader(uri+"?"+p, header)
 			}(paramStr)
-			builder.Reset() // 重用 builder，避免新分配
+			builder.Reset() // Reuse builder to avoid new allocations
 		}
 	}
 
@@ -97,8 +97,8 @@ func FuzzPostJson(uri string, id string, header map[string]string, wg *sync.Wait
 	}
 	jsonData, err := json.Marshal(params)
 	if err != nil {
-		// 处理 JSON 序列化错误
-		fmt.Println("JSON 序列化失败:", err)
+		// Handle JSON serialization error
+		fmt.Println("JSON serialization failed:", err)
 		return
 	}
 	wg.Add(1)
@@ -121,19 +121,19 @@ func FuzzPost(uri string, id string, header map[string]string, wg *sync.WaitGrou
 		builder.WriteByte('&')
 		builder.WriteString(GetKeyValue(key, id, "2", dnslog))
 
-		// 当参数长度超过阈值就发送
+		// Send when parameter length exceeds the threshold
 		if builder.Len() > 1024*1020 {
-			paramStr := builder.String()[1:] // 去掉首个 '&'
+			paramStr := builder.String()[1:] // Remove first '&'
 			wg.Add(1)
 			go func(p string) {
 				defer wg.Done()
 				FuzzHttpPostNoResWithCustomHeader(uri, []byte(p), "url", header)
 			}(paramStr)
-			builder.Reset() // 重用 builder 内存
+			builder.Reset() // Reuse builder memory
 		}
 	}
 
-	// 发送剩余参数
+	// Send remaining parameters
 	if builder.Len() > 0 {
 		paramStr := builder.String()[1:]
 		wg.Add(1)

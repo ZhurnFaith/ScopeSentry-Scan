@@ -7,7 +7,7 @@
 
 package global
 
-// Config 结构体
+// Config struct
 type Config struct {
 	NodeName     string        `yaml:"NodeName"`
 	State        int           `yaml:"state"`

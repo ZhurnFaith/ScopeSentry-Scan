@@ -40,7 +40,7 @@ func (r *Runner) ModuleRun() error {
 	var allPluginWg sync.WaitGroup
 	var resultWg sync.WaitGroup
 	var nextModuleRun sync.WaitGroup
-	// 创建一个共享的 result 通道
+	// Create a shared result channel
 	resultChan := make(chan interface{}, 1000)
 	go func() {
 		nextModuleRun.Add(1)
@@ -50,12 +50,12 @@ func (r *Runner) ModuleRun() error {
 			logger.SlogError(fmt.Sprintf("Next module run error: %v", err))
 		}
 	}()
-	// 结果处理 goroutine，异步读取插件的结果
+	// Result handling goroutine, reads plugin results asynchronously
 	resultWg.Add(1)
 	go func() {
 		defer resultWg.Done()
 		defer r.NextModule.CloseInput()
-		for result := range resultChan { // 自动处理通道关闭
+		for result := range resultChan { // Automatically handle channel close
 			if portaliveResult, ok := result.(types.PortAlive); ok {
 				port := portaliveResult.Port
 				if port == "" {
@@ -83,7 +83,7 @@ func (r *Runner) ModuleRun() error {
 				close(resultChan)
 				resultWg.Wait()
 				r.Option.ModuleRunWg.Done()
-				doneCalled = true // 标记已调用 Done
+				doneCalled = true // Mark as called Done
 			}
 			nextModuleRun.Wait()
 			return nil
@@ -91,7 +91,7 @@ func (r *Runner) ModuleRun() error {
 			if !ok {
 				time.Sleep(3 * time.Second)
 				allPluginWg.Wait()
-				// 通道已关闭，结束处理
+				// Channel closed, end processing
 				if firstData {
 					end = time.Now()
 					duration := end.Sub(start)
@@ -101,20 +101,20 @@ func (r *Runner) ModuleRun() error {
 					close(resultChan)
 					resultWg.Wait()
 					r.Option.ModuleRunWg.Done()
-					doneCalled = true // 标记已调用 Done
+					doneCalled = true // Mark as called Done
 				}
 				logger.SlogInfoLocal(fmt.Sprintf("module %v target %v close resultChan", r.GetName(), r.Option.Target))
 				nextModuleRun.Wait()
 				return nil
 			}
 
-			//发送来的数据 只能是types.DomainSkip
+			//Incoming data can only be types.DomainSkip
 			domainSkip, ok := data.(types.DomainSkip)
 			if !ok {
 				r.NextModule.GetInput() <- data
 				continue
 			}
-			// 无论有没有选择端口扫描 将原始数据发送到结果处
+			// Send raw data to results whether or not port scan was selected
 			result := types.PortAlive{
 				Host: domainSkip.Domain,
 				IP:   "",
@@ -130,7 +130,7 @@ func (r *Runner) ModuleRun() error {
 			go func(data interface{}) {
 				defer allPluginWg.Done()
 				if len(r.Option.PortScan) != 0 {
-					// 调用插件
+					// Call plugin
 					for _, pluginId := range r.Option.PortScan {
 						//var plgWg sync.WaitGroup
 						var plgWg sync.WaitGroup

@@ -66,8 +66,8 @@ func main() {
 		fmt.Println(err)
 	}
 	fingers = append(fingers, &tmpFinger.Fingerprint)
-	fmt.Printf("✓ 成功加载 %d 个指纹文件\n", len(fingers))
-	fmt.Println("\n开始构建AC自动机...")
+	fmt.Printf("✓ loaded %d fingerprint files successfully\n", len(fingers))
+	fmt.Println("\n start building Aho-Corasick automaton...")
 	matcher := configupdater.BuildACMatcher(fingers)
 	fmt.Printf("<UNK> <UNK> %d <UNK>\n", len(matcher.NonACFingerprints))
 }

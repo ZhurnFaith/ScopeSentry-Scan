@@ -19,7 +19,7 @@ import (
 
 const (
 	batchSize     = 20
-	flushInterval = 2 * time.Second // 每2秒从队列中取数据
+	flushInterval = 2 * time.Second // Take data from the queue every 2 seconds
 )
 
 type NotificationQueue struct {
@@ -29,16 +29,16 @@ type NotificationQueue struct {
 var NotificationQueues = make(map[string]*NotificationQueue)
 
 func InitializeNotification() {
-	// 模块列表
+	// Module list
 	modules := []string{
 		"SubdomainScan", "SubdomainSecurity",
 		"AssetMapping", "PortScan", "URLScan",
 		"URLSecurity", "DirScan", "WebCrawler", "VulnerabilityScan", "PageMonitor", "NewAssets",
 	}
-	// 初始化模块队列和 Goroutine
+	// Initialize module queues and Goroutine
 	for _, module := range modules {
 		NotificationQueues[module] = &NotificationQueue{
-			Queue: make(chan string, 50), // 缓存队列大小可以大于 batchSize
+			Queue: make(chan string, 50), // Cache queue size can be greater than batchSize
 		}
 		go processQueue(module, NotificationQueues[module])
 	}
@@ -50,25 +50,25 @@ func processQueue(module string, mq *NotificationQueue) {
 
 	for {
 		select {
-		// 每2秒触发一次处理逻辑
+		// Trigger processing logic every 2 seconds
 		case <-ticker.C:
 			processBatch(module, mq)
 		}
 	}
 }
 
-// processBatch 从队列中取出最多 batchSize 条数据进行处理
+// processBatch take up to batchSize items from the queue for processing
 func processBatch(module string, mq *NotificationQueue) {
 	var buffer = ""
 	num := 0
-	// 尝试取出 batchSize 条数据，如果不足则取剩下的所有数据
+	// Try to take batchSize items, or all remaining items if fewer
 	for i := 0; i < batchSize; i++ {
 		select {
 		case msg := <-mq.Queue:
 			num += 1
 			buffer += msg
 		default:
-			// 如果队列中没有更多数据，跳出循环
+			// If there is no more data in the queue, break the loop
 			break
 		}
 	}
@@ -83,10 +83,10 @@ func jsonEscape(s string) string {
 	return string(b[1 : len(b)-1])
 }
 
-// FlushBuffer 模拟处理队列中的数据
+// FlushBuffer simulate processing data in the queue
 func FlushBuffer(module string, buffer *string) {
 	*buffer = jsonEscape(*buffer)
-	// 处理消息
+	// Handle message
 	*buffer = "[" + global.AppConfig.NodeName + "][" + module + "]results:\n" + *buffer
 	for _, api := range global.NotificationApi {
 		uri := strings.Replace(api.Url, "*msg*", *buffer, -1)
@@ -103,6 +103,6 @@ func FlushBuffer(module string, buffer *string) {
 			}
 		}
 	}
-	// 清空缓冲区
+	// Clear buffer
 	*buffer = ""
 }

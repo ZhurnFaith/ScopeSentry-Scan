@@ -69,7 +69,7 @@ func (p *Plugin) UnInstall() error {
 func (p *Plugin) Log(msg string, tp ...string) {
 	var logTp string
 	if len(tp) > 0 {
-		logTp = tp[0] // 使用传入的参数
+		logTp = tp[0] // Use the parameters passed in
 	} else {
 		logTp = "i"
 	}
@@ -116,10 +116,10 @@ func (p *Plugin) Install() error {
 	if !flag {
 		cmd := exec.Command("pip", "install", "uro")
 
-		// 执行命令并获取输出
+		// Run command and get output
 		output, err := cmd.CombinedOutput()
 
-		// 如果有错误，打印错误信息
+		// If there is an error, print the error message
 		if err != nil {
 			logger.SlogErrorLocal(fmt.Sprintf("install uro error: %v\n", err))
 		}
@@ -185,10 +185,10 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 			if isMatch {
 				continue
 			}
-			// 去重
+			// Deduplicate
 			flag := results.Duplicate.URL(result.URL, p.TaskId)
 			if flag {
-				// 没有重复
+				// No duplicates
 				var r types.UrlResult
 				parsedURL, err := url.Parse(result.URL)
 				paramMap := url.Values{}
@@ -237,7 +237,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 						}
 
 						var buf bytes.Buffer
-						tmp := make([]byte, 64*1024) // 每次读取 64KB
+						tmp := make([]byte, 64*1024) // Each read 64KB
 						for {
 							n, err := reader.Read(tmp)
 							if n > 0 {
@@ -256,7 +256,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 
 						bodyBytes := buf.Bytes()
 						r.BodyByte = bodyBytes
-						// 零拷贝把 []byte 转 string
+						// Zero-copy convert []byte to string
 						r.Body = *(*string)(unsafe.Pointer(&bodyBytes))
 						r.Length = len(bodyBytes)
 					}()

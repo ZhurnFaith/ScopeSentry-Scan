@@ -223,7 +223,7 @@ type SensitiveResult struct {
 	TaskName   string   `bson:"taskName"`
 	RootDomain string   `bson:"rootDomain"`
 	Tags       []string `bson:"tags"`
-	Status     int      `bson:"status"` // 1表示未处理 2表示处理中 3表示忽略 4表示疑似 5表示确认
+	Status     int      `bson:"status"` // 1 means unhandled, 2 in progress, 3 ignored, 4 suspected, 5 confirmed
 }
 
 type VulnResult struct {
@@ -239,7 +239,7 @@ type VulnResult struct {
 	TaskName   string   `bson:"taskName"`
 	RootDomain string   `yaml:"rootDomain"`
 	Tags       []string `bson:"tags"`
-	Status     int      `bson:"status"` // 1表示未处理 2表示处理中 3表示忽略 4表示疑似 5表示确认
+	Status     int      `bson:"status"` // 1 means unhandled, 2 in progress, 3 ignored, 4 suspected, 5 confirmed
 	Hash       string   `bson:"hash" json:"hash"`
 }
 
@@ -366,8 +366,8 @@ type PageMonitBody struct {
 }
 
 type BulkUpdateOperation struct {
-	Selector bson.M // 条件选择器数组
-	Update   bson.M // 更新内容数组
+	Selector bson.M // Condition selector array
+	Update   bson.M // Update content array
 }
 
 type RootDomain struct {

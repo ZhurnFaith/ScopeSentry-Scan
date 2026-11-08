@@ -32,7 +32,7 @@ func main() {
 	prefix := "task:"
 	keys, _ := pebbledb.PebbleStore.GetKeysWithPrefix(prefix)
 	if len(keys) > 0 {
-		// 打印所有以 "task:" 开头的键值对
+		// Print all with "task:" key-value pairs starting with
 		for key, value := range keys {
 			fmt.Println(key, value)
 		}

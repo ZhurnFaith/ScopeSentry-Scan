@@ -14,50 +14,50 @@ import (
 )
 
 type SubdomainScanConfig struct {
-	GoroutineCount int `yaml:"goroutineCount"` // 协程数量
+	GoroutineCount int `yaml:"goroutineCount"` // Number of goroutines
 }
 
 type SubdomainSecurityConfig struct {
-	GoroutineCount int `yaml:"goroutineCount"` // 协程数量
+	GoroutineCount int `yaml:"goroutineCount"` // Number of goroutines
 }
 
 type AssetMappConfig struct {
-	GoroutineCount int `yaml:"goroutineCount"` // 协程数量
+	GoroutineCount int `yaml:"goroutineCount"` // Number of goroutines
 }
 
 type PortScanPreparationConfig struct {
-	GoroutineCount int `yaml:"goroutineCount"` // 协程数量
+	GoroutineCount int `yaml:"goroutineCount"` // Number of goroutines
 }
 type PortScanConfig struct {
-	GoroutineCount int `yaml:"goroutineCount"` // 协程数量
+	GoroutineCount int `yaml:"goroutineCount"` // Number of goroutines
 }
 
 type PortFingerprintConfig struct {
-	GoroutineCount int `yaml:"goroutineCount"` // 协程数量
+	GoroutineCount int `yaml:"goroutineCount"` // Number of goroutines
 }
 
 type AssetHandleConfig struct {
-	GoroutineCount int `yaml:"goroutineCount"` // 协程数量
+	GoroutineCount int `yaml:"goroutineCount"` // Number of goroutines
 }
 
 type URLScanConfig struct {
-	GoroutineCount int `yaml:"goroutineCount"` // 协程数量
+	GoroutineCount int `yaml:"goroutineCount"` // Number of goroutines
 }
 
 type URLSecurityConfig struct {
-	GoroutineCount int `yaml:"goroutineCount"` // 协程数量
+	GoroutineCount int `yaml:"goroutineCount"` // Number of goroutines
 }
 
 type WebCrawlerConfig struct {
-	GoroutineCount int `yaml:"goroutineCount"` // 协程数量
+	GoroutineCount int `yaml:"goroutineCount"` // Number of goroutines
 }
 
 type DirScanConfig struct {
-	GoroutineCount int `yaml:"goroutineCount"` // 协程数量
+	GoroutineCount int `yaml:"goroutineCount"` // Number of goroutines
 }
 
 type VulnerabilityScanConfig struct {
-	GoroutineCount int `yaml:"goroutineCount"` // 协程数量
+	GoroutineCount int `yaml:"goroutineCount"` // Number of goroutines
 }
 
 type ModulesConfigStruct struct {
@@ -89,9 +89,9 @@ func ModulesInitialize() error {
 func (cfg *ModulesConfigStruct) GetGoroutineCount(moduleName string) int {
 	switch moduleName {
 	case "task":
-		return cfg.MaxGoroutineCount // 这个模块使用全局最大协程数
+		return cfg.MaxGoroutineCount // This module uses the global max goroutines
 	case "TargetHandler":
-		return cfg.MaxGoroutineCount // 这个模块使用全局最大协程数
+		return cfg.MaxGoroutineCount // This module uses the global max goroutines
 	case "SubdomainScan":
 		return cfg.SubdomainScan.GoroutineCount
 	case "SubdomainSecurity":
@@ -118,6 +118,6 @@ func (cfg *ModulesConfigStruct) GetGoroutineCount(moduleName string) int {
 		return cfg.VulnerabilityScan.GoroutineCount
 	default:
 		log.Printf(fmt.Sprintf("Module %v thread limit not found", moduleName))
-		return 0 // 默认值，表示没有找到匹配的模块
+		return 0 // Default value, means no matching module was found
 	}
 }

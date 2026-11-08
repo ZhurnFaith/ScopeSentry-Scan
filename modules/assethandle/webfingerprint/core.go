@@ -21,30 +21,30 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// HTTPResponse HTTP响应数据
+// HTTPResponse HTTP response data
 type HTTPResponse struct {
 	URL        string
 	StatusCode int
-	RawHeaders string // 原始响应头字符串（用于匹配）
+	RawHeaders string // Raw response header string (for matching)
 	Body       string
-	Title      string // 从body中提取的title
+	Title      string // Extracted from body title
 }
 
-// MatchContext 匹配上下文
+// MatchContext match context
 type MatchContext struct {
-	Variables  map[string]string           // 变量存储
-	Responses  map[string]*types.AssetHttp // 响应缓存（key为URL）
-	HTTPClient *http.Client                // HTTP客户端
+	Variables  map[string]string           // Variable storage
+	Responses  map[string]*types.AssetHttp // Response cache (key is URL)
+	HTTPClient *http.Client                // HTTP client
 }
 
-// LoadFingerprint 加载YAML指纹文件
+// LoadFingerprint load YAML fingerprint file
 func LoadFingerprint(filepath string) (*types.Fingerprint, error) {
 	data, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read fingerprint file: %w", err)
 	}
 
-	// 如果没有fingerprint包装，直接解析为Fingerprint结构
+	// If there is no fingerprint wrapper, parse directly into the Fingerprint struct
 	var fingerprint types.Fingerprint
 	if err := yaml.Unmarshal(data, &fingerprint); err != nil {
 		return nil, fmt.Errorf("failed to parse YAML: %w", err)
@@ -53,7 +53,7 @@ func LoadFingerprint(filepath string) (*types.Fingerprint, error) {
 	return &fingerprint, nil
 }
 
-// parseHeaders 解析原始headers字符串为map
+// parseHeaders parse raw headers string into map
 func parseHeaders(rawHeaders string) map[string]string {
 	headers := make(map[string]string)
 	if rawHeaders == "" {
@@ -78,7 +78,7 @@ func parseHeaders(rawHeaders string) map[string]string {
 	return headers
 }
 
-// NewMatchContext 创建匹配上下文
+// NewMatchContext create match context
 func NewMatchContext() *MatchContext {
 	return &MatchContext{
 		Variables: make(map[string]string),
@@ -89,11 +89,11 @@ func NewMatchContext() *MatchContext {
 	}
 }
 
-// MatchFingerprint 匹配指纹
+// MatchFingerprint match fingerprint
 func MatchFingerprint(fingerprint *types.Fingerprint, asset *types.AssetHttp) (bool, error) {
 	ctx := NewMatchContext()
 
-	// 规则之间是OR关系，任一规则匹配成功即可
+	// Rules are ORed, any matching rule is enough
 	for _, rule := range fingerprint.Rules {
 		matched, err := evaluateRule(rule, ctx, asset)
 		if err != nil {
@@ -107,86 +107,86 @@ func MatchFingerprint(fingerprint *types.Fingerprint, asset *types.AssetHttp) (b
 	return false, nil
 }
 
-// evaluateRule 评估规则
+// evaluateRule evaluate rules
 func evaluateRule(rule types.Rule, ctx *MatchContext, baseResponse *types.AssetHttp) (bool, error) {
-	// 为每个规则创建新的变量作用域（规则之间变量不共享）
+	// Create a new variable scope per rule (variables are not shared between rules)
 	ctx.Variables = make(map[string]string)
 
-	// 根据rule.Logic进行短路求值优化
+	// Short-circuit evaluation optimization based on rule.Logic
 	if rule.Logic == "AND" {
-		// AND逻辑：遇到第一个false就立即返回false
+		// AND logic: return immediately on the first false false
 		for _, condition := range rule.Conditions {
 			result, err := evaluateCondition(condition, ctx, baseResponse)
 			if err != nil {
 				return false, err
 			}
 			if !result {
-				return false, nil // 短路：第一个不满足就返回false
+				return false, nil // Short-circuit: return on first failure false
 			}
 		}
-		return true, nil // 所有条件都满足
+		return true, nil // All conditions are met
 	} else { // OR
-		// OR逻辑：遇到第一个true就立即返回true
+		// OR logic: return immediately on the first true true
 		for _, condition := range rule.Conditions {
 			result, err := evaluateCondition(condition, ctx, baseResponse)
 			if err != nil {
 				return false, err
 			}
 			if result {
-				return true, nil // 短路：第一个满足就返回true
+				return true, nil // Short-circuit: return on first match true
 			}
 		}
-		return false, nil // 所有条件都不满足
+		return false, nil // None of the conditions are met
 	}
 }
 
-// evaluateCondition 评估条件（递归处理嵌套条件组）
+// evaluateCondition evaluate conditions (recursively handle nested condition groups)
 func evaluateCondition(condition types.Condition, ctx *MatchContext, baseResponse *types.AssetHttp) (bool, error) {
-	// 判断是否为嵌套条件组
+	// Check whether it is a nested condition group
 	if isConditionGroup(condition) {
 		return evaluateConditionGroup(condition, ctx, baseResponse)
 	}
 
-	// 普通条件
+	// Normal conditions
 	return evaluateNormalCondition(condition, ctx, baseResponse)
 }
 
-// isConditionGroup 判断是否为嵌套条件组
+// isConditionGroup check whether it is a nested condition group
 func isConditionGroup(condition types.Condition) bool {
 	return condition.Logic != "" && condition.Location == ""
 }
 
-// evaluateConditionGroup 评估嵌套条件组
+// evaluateConditionGroup evaluate nested condition group
 func evaluateConditionGroup(condition types.Condition, ctx *MatchContext, baseResponse *types.AssetHttp) (bool, error) {
-	// 根据logic进行短路求值优化
+	// Short-circuit evaluation optimization based on logic
 	if condition.Logic == "AND" {
-		// AND逻辑：遇到第一个false就立即返回false
+		// AND logic: return immediately on the first false false
 		for _, subCondition := range condition.Conditions {
 			result, err := evaluateCondition(subCondition, ctx, baseResponse)
 			if err != nil {
 				return false, err
 			}
 			if !result {
-				return false, nil // 短路：第一个不满足就返回false
+				return false, nil // Short-circuit: return on first failure false
 			}
 		}
-		return true, nil // 所有条件都满足
+		return true, nil // All conditions are met
 	} else { // OR
-		// OR逻辑：遇到第一个true就立即返回true
+		// OR logic: return immediately on the first true true
 		for _, subCondition := range condition.Conditions {
 			result, err := evaluateCondition(subCondition, ctx, baseResponse)
 			if err != nil {
 				return false, err
 			}
 			if result {
-				return true, nil // 短路：第一个满足就返回true
+				return true, nil // Short-circuit: return on first match true
 			}
 		}
-		return false, nil // 所有条件都不满足
+		return false, nil // None of the conditions are met
 	}
 }
 
-// evaluateNormalCondition 评估普通条件
+// evaluateNormalCondition evaluate regular condition
 func evaluateNormalCondition(condition types.Condition, ctx *MatchContext, baseResponse *types.AssetHttp) (bool, error) {
 	switch condition.MatchType {
 	case "regex":
@@ -204,13 +204,13 @@ func evaluateNormalCondition(condition types.Condition, ctx *MatchContext, baseR
 	}
 }
 
-// getDataByLocation 根据location获取数据
+// getDataByLocation get data by location
 func getDataByLocation(location string, response *types.AssetHttp) string {
 	switch location {
 	case "body":
 		return response.ResponseBody
 	case "header":
-		// 直接使用原始headers字符串进行匹配，不进行格式化
+		// Match against the raw headers string directly, without formatting
 		return response.RawHeaders
 	case "title":
 		return response.Title
@@ -219,7 +219,7 @@ func getDataByLocation(location string, response *types.AssetHttp) string {
 	}
 }
 
-// formatHeaders 格式化headers为字符串
+// formatHeaders format headers as string
 func formatHeaders(headers map[string]string) string {
 	var builder strings.Builder
 	for key, value := range headers {
@@ -231,7 +231,7 @@ func formatHeaders(headers map[string]string) string {
 	return builder.String()
 }
 
-// matchRegex 正则表达式匹配
+// matchRegex regex match
 func matchRegex(condition types.Condition, ctx *MatchContext, baseResponse *types.AssetHttp) (bool, error) {
 	data := getDataByLocation(condition.Location, baseResponse)
 	if data == "" {
@@ -246,7 +246,7 @@ func matchRegex(condition types.Condition, ctx *MatchContext, baseResponse *type
 	return re.MatchString(data), nil
 }
 
-// matchContains 字符串包含匹配
+// matchContains string contains match
 func matchContains(condition types.Condition, ctx *MatchContext, baseResponse *types.AssetHttp) (bool, error) {
 	data := getDataByLocation(condition.Location, baseResponse)
 	if data == "" {
@@ -256,40 +256,40 @@ func matchContains(condition types.Condition, ctx *MatchContext, baseResponse *t
 	return strings.Contains(data, condition.Pattern), nil
 }
 
-// matchNotContains 字符串不包含匹配
+// matchNotContains string does not contain match
 func matchNotContains(condition types.Condition, ctx *MatchContext, baseResponse *types.AssetHttp) (bool, error) {
 	data := getDataByLocation(condition.Location, baseResponse)
 	if data == "" {
-		return true, nil // 如果数据为空，认为不包含
+		return true, nil // If data is empty, treat as not contained
 	}
 
 	return !strings.Contains(data, condition.Pattern), nil
 }
 
-// matchExtract 提取并保存变量
+// matchExtract extract and save variables
 func matchExtract(condition types.Condition, ctx *MatchContext, baseResponse *types.AssetHttp) (bool, error) {
 	data := getDataByLocation(condition.Location, baseResponse)
 	if data == "" {
 		return false, nil
 	}
 
-	// 编译正则表达式
+	// Compile regular expression
 	re, err := regexp.Compile(condition.Pattern)
 	if err != nil {
 		return false, fmt.Errorf("invalid regex pattern: %w", err)
 	}
 
-	// 执行匹配
+	// Execute match
 	matches := re.FindStringSubmatch(data)
 	if len(matches) <= condition.Group {
-		return false, nil // 未匹配或组不存在
+		return false, nil // No match or group does not exist
 	}
 
-	// 提取并保存变量
+	// Extract and save variables
 	extractedValue := matches[condition.Group]
 	ctx.Variables[condition.SaveAs] = extractedValue
 
-	// 如果有子条件，评估子条件
+	// If there are sub-conditions, evaluate them
 	if len(condition.Conditions) > 0 {
 		for _, subCondition := range condition.Conditions {
 			result, err := evaluateCondition(subCondition, ctx, baseResponse)
@@ -305,12 +305,12 @@ func matchExtract(condition types.Condition, ctx *MatchContext, baseResponse *ty
 	return true, nil
 }
 
-// matchActive 主动发送HTTP请求
+// matchActive actively send HTTP request
 func matchActive(condition types.Condition, ctx *MatchContext, baseResponse *types.AssetHttp) (bool, error) {
-	// 确定请求URL
+	// Confirm request URL
 	var requestURL string
 	if condition.DynamicPath != "" {
-		// 替换变量
+		// Replace variables
 		path := replaceVariables(condition.DynamicPath, ctx.Variables)
 		requestURL = baseURL(baseResponse.URL) + path
 	} else if condition.Path != "" {
@@ -319,38 +319,38 @@ func matchActive(condition types.Condition, ctx *MatchContext, baseResponse *typ
 		return false, fmt.Errorf("active condition must have path or dynamic_path")
 	}
 
-	// 确定HTTP方法
+	// Determine HTTP method
 	method := condition.Method
 	if method == "" {
 		method = "GET"
 	}
 
-	// 检查缓存
+	// Check cache
 	if cached, exists := ctx.Responses[requestURL]; exists {
 		return evaluateActiveSubConditions(condition, cached, ctx), nil
 	}
 
-	// 发送HTTP请求
+	// Send HTTP request
 	response, err := sendHTTPRequest(ctx, method, requestURL)
 	if err != nil {
 		return false, fmt.Errorf("active request failed: %w", err)
 	}
 
-	// 缓存响应
+	// Cache response
 	ctx.Responses[requestURL] = response
 
-	// 评估子条件（验证条件）
+	// Evaluate sub-conditions (validation conditions)
 	return evaluateActiveSubConditions(condition, response, ctx), nil
 }
 
-// evaluateActiveSubConditions 评估主动请求的子条件
+// evaluateActiveSubConditions evaluate sub-conditions of active requests
 func evaluateActiveSubConditions(condition types.Condition, response *types.AssetHttp, ctx *MatchContext) bool {
 	if len(condition.Conditions) == 0 {
-		// 没有验证条件，只要请求成功就返回true
+		// No validation conditions, return as long as the request succeeds true
 		return response.StatusCode >= 200 && response.StatusCode < 300
 	}
 
-	// 评估所有子条件
+	// Evaluate all sub-conditions
 	for _, subCondition := range condition.Conditions {
 		result, err := evaluateCondition(subCondition, ctx, response)
 		if err != nil {
@@ -363,7 +363,7 @@ func evaluateActiveSubConditions(condition types.Condition, response *types.Asse
 	return true
 }
 
-// replaceVariables 替换变量
+// replaceVariables replace variables
 func replaceVariables(template string, variables map[string]string) string {
 	result := template
 	for key, value := range variables {
@@ -373,7 +373,7 @@ func replaceVariables(template string, variables map[string]string) string {
 	return result
 }
 
-// baseURL 获取基础URL
+// baseURL get basic URL
 func baseURL(fullURL string) string {
 	parsed, err := url.Parse(fullURL)
 	if err != nil {
@@ -382,14 +382,14 @@ func baseURL(fullURL string) string {
 	return fmt.Sprintf("%s://%s", parsed.Scheme, parsed.Host)
 }
 
-// sendHTTPRequest 发送HTTP请求
+// sendHTTPRequest send HTTP request
 func sendHTTPRequest(ctx *MatchContext, method, url string) (*types.AssetHttp, error) {
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	// 设置User-Agent
+	// Settings User-Agent
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
 
 	resp, err := ctx.HTTPClient.Do(req)
@@ -403,16 +403,16 @@ func sendHTTPRequest(ctx *MatchContext, method, url string) (*types.AssetHttp, e
 		return nil, err
 	}
 
-	// 提取title
+	// Extract title
 	title := extractTitle(string(body))
 
-	// 格式化headers
+	// Format headers
 	headers := make(map[string]string)
 	var rawHeadersBuilder strings.Builder
 	for key, values := range resp.Header {
 		value := strings.Join(values, ", ")
 		headers[key] = value
-		// 构建原始headers字符串格式: "Key: Value\n"
+		// Build raw headers string format: "Key: Value\n"
 		rawHeadersBuilder.WriteString(key)
 		rawHeadersBuilder.WriteString(": ")
 		rawHeadersBuilder.WriteString(value)
@@ -423,13 +423,13 @@ func sendHTTPRequest(ctx *MatchContext, method, url string) (*types.AssetHttp, e
 	return &types.AssetHttp{
 		URL:          url,
 		StatusCode:   resp.StatusCode,
-		RawHeaders:   rawHeaders, // 保存原始headers字符串
+		RawHeaders:   rawHeaders, // Save raw headers string
 		ResponseBody: string(body),
 		Title:        title,
 	}, nil
 }
 
-// extractTitle 从HTML body中提取title
+// extractTitle extract from HTML body title
 func extractTitle(body string) string {
 	re := regexp.MustCompile(`(?i)<title[^>]*>([^<]+)</title>`)
 	matches := re.FindStringSubmatch(body)

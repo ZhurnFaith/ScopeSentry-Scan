@@ -108,7 +108,7 @@ func (p *Plugin) GetParameter() string {
 func (p *Plugin) Log(msg string, tp ...string) {
 	var logTp string
 	if len(tp) > 0 {
-		logTp = tp[0] // 使用传入的参数
+		logTp = tp[0] // Use the parameters passed in
 	} else {
 		logTp = "i"
 	}
@@ -153,10 +153,10 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 			defer wg.Done()
 			select {
 			case <-ctx.Done():
-				// context 已经结束，直接退出
+				// context already finished, exit directly
 				return
 			default:
-				// 正常逻辑，只跑一次
+				// Normal logic, run only once
 				utils.RunAnalyze(t, httpxResultsHandler, p.Parameter)
 			}
 		}(target)

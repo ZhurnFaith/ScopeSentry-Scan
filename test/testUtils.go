@@ -41,18 +41,18 @@ type Response struct {
 	Page            int        `json:"page"`
 	Mode            string     `json:"mode"`
 	Query           string     `json:"query"`
-	Results         [][]string `json:"results"` // results 是一个包含数组的二维数组
+	Results         [][]string `json:"results"` // results is a 2D array of arrays
 }
 
 func main() {
 	config.Initialize()
 	global.VERSION = "1.5"
 	global.AppConfig.Debug = true
-	// 初始化mongodb连接
+	// Initialize mongodb connection
 	mongodb.Initialize()
-	// 初始化redis连接
+	// Initialize redis connection
 	redis.Initialize()
-	// 初始化日志模块
+	// Initialize log module
 	logger.NewLogger()
 	utils.InitializeDnsTools()
 	utils.InitializeRequests()
@@ -63,7 +63,7 @@ func main() {
 	//	fmt.Println(result)
 	//}
 	//result := make(chan string)
-	//// 设置超时时间和任务上下文管理
+	//// Set timeout and task context management
 	//go utils.Tools.ExecuteCommandToChanWithTimeout("whoami", []string{}, result, 20*time.Minute, context.Background())
 	////go utils.Tools.ExecuteCommandToChan("whoami", []string{}, result)
 	//for i := range result {
@@ -81,16 +81,16 @@ func main() {
 	//fmt.Println(similarity)
 	//a := utils.DNS.QueryOne("baidu.com")
 	//fmt.Println(a)
-	// 获取当前时间戳（秒）
+	// Get current timestamp (seconds)
 	//now := time.Now().Unix()
 	//fmt.Println(now)
-	//// 定义2000年1月1日的时间
+	//// Define the time January 1, 2000
 	//referenceTime := time.Date(2024, 10, 15, 0, 0, 0, 0, time.UTC)
 	//
-	//// 获取2000年1月1日的Unix时间戳（秒）
+	//// Get the Unix timestamp of January 1, 2000 (seconds)
 	//referenceTimestamp := referenceTime.Unix()
 	//fmt.Println(referenceTimestamp)
-	//// 计算从2000年到现在的时间差（秒）
+	//// Calculate the time difference from 2000 to now (seconds)
 	//secondsSince2000 := now - referenceTimestamp
 	//fmt.Println(secondsSince2000)
 	//base62Timestamp := ToBase62(secondsSince2000)
@@ -142,7 +142,7 @@ func main() {
 	//wg.Wait()
 	//portUint64, err := strconv.ParseUint("8083", 10, 16)
 	//if err != nil {
-	//	logger.SlogError(fmt.Sprintf("端口转换错误: %v", err))
+	//	logger.SlogError(fmt.Sprintf("Port conversion error: %v", err))
 	//} else {
 	//	rev, err := utils.Requests.TcpRecv("59.82.132.140", uint16(portUint64))
 	//	if err == nil {
@@ -172,19 +172,19 @@ func main() {
 	for i, u := range urls {
 		resp, err := client.Get(u)
 		if err != nil {
-			fmt.Printf("请求 %d 失败: %v\n", i, err)
+			fmt.Printf("Request %d failed: %v\n", i, err)
 			continue
 		}
-		// 确保关闭响应体，避免资源泄漏
+		// Ensure the response body is closed to avoid resource leaks
 
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			fmt.Printf("读取响应体失败: %v\n", err)
+			fmt.Printf("Failed to read response body: %v\n", err)
 			resp.Body.Close()
 			continue
 		}
 		resp.Body.Close()
 
-		fmt.Printf("请求 %d 成功: %s %v\n响应体: %s\n", i, u, resp.Status, string(bodyBytes))
+		fmt.Printf("Request %d succeeded: %s %v\n response body: %s\n", i, u, resp.Status, string(bodyBytes))
 	}
 }

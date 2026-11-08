@@ -43,7 +43,7 @@ func (r *Runner) ModuleRun() error {
 	var allPluginWg sync.WaitGroup
 	var resultWg sync.WaitGroup
 	var nextModuleRun sync.WaitGroup
-	// 创建一个共享的 result 通道
+	// Create a shared result channel
 	resultChan := make(chan interface{}, 500)
 	go func() {
 		nextModuleRun.Add(1)
@@ -63,7 +63,7 @@ func (r *Runner) ModuleRun() error {
 			_ = bson.Unmarshal(data, &oldAssetHttp)
 			changeData := utils.Results.CompareAssetHttp(oldAssetHttp, dataTmp)
 			if changeData.Timestamp != "" {
-				// 说明资产存在变化，将结果发送到changelog中
+				// The asset changed, send the result to the changelog
 				changeData.AssetId = id
 				go results.Handler.AssetChangeLog(&changeData)
 			}
@@ -76,7 +76,7 @@ func (r *Runner) ModuleRun() error {
 			} else {
 				t = oldAssetHttp.Time
 			}
-			// 对资产进行更新,设置最新的扫描时间
+			// Update the asset, set the latest scan time
 			dataTmp.LastScanTime = dataTmp.Time
 			dataTmp.Time = t
 			dataTmp.Project = oldAssetHttp.Project
@@ -94,9 +94,9 @@ func (r *Runner) ModuleRun() error {
 				dataTmp.Screenshot = ""
 				results.Handler.AssetUpdate(id, dataTmp)
 			}()
-			// 资产没有变化，不进行操作
+			// Asset unchanged, nothing to do
 		} else {
-			// 数据库中不存在该资产，直接插入。
+			// Asset does not exist in database, insert directly.
 			go func() {
 				results.Handler.HttpIcon(dataTmp.FavIconMMH3, dataTmp.IconContent)
 				dataTmp.IconContent = ""
@@ -109,7 +109,7 @@ func (r *Runner) ModuleRun() error {
 		}
 
 	}
-	// 结果处理 goroutine，异步读取插件的结果
+	// Result handling goroutine, reads plugin results asynchronously
 	resultWg.Add(1)
 	go func() {
 		defer resultWg.Done()
@@ -119,8 +119,8 @@ func (r *Runner) ModuleRun() error {
 			select {
 			case result, ok := <-resultChan:
 				if !ok {
-					// 如果 resultChan 关闭了，退出循环
-					// 此模块运行完毕，关闭下个模块的输入
+					// If resultChan is closed, exit the loop
+					// This module is done, close the next module's input
 					if len(assetOtherArray) > 0 {
 						r.NextModule.GetInput() <- assetOtherArray
 					}
@@ -148,14 +148,14 @@ func (r *Runner) ModuleRun() error {
 							}
 						}
 						if len(r.Option.AssetMapping) != 0 {
-							// 如果是0 说明没有开启httpx资产测绘 说明是从资产处创建的任务
+							// If 0, httpx asset mapping is not enabled, so the task was created from assets
 							httpAssetHandle(tmp)
 						}
 						assetHttpArray = append(assetHttpArray, tmp)
 						continue
 					}
 					dataTmp.TaskName = []string{r.Option.TaskName}
-					// 过滤unknown
+					// Filter unknown
 					if dataTmp.Service == "unknown" {
 						if len(dataTmp.Banner) == 0 {
 							logger.SlogInfoLocal(fmt.Sprintf("Unknown asset %v port %v ", dataTmp.Host, dataTmp.Port))
@@ -168,16 +168,16 @@ func (r *Runner) ModuleRun() error {
 
 					flag, id, bsonData := results.Duplicate.AssetInMongodb(dataTmp.Host, dataTmp.Port)
 					if flag {
-						// 数据库中存在该资产，对该资产信息进行diff
+						// Asset exists in database, its info will be diff
 						var oldAsset types.AssetOther
 						data, _ := bson.Marshal(bsonData)
 						_ = bson.Unmarshal(data, &oldAsset)
 						changeData := utils.Results.CompareAssetOther(oldAsset, dataTmp)
 						if changeData.Timestamp != "" {
-							// 说明资产存在变化，将结果发送到changelog中
+							// The asset changed, send the result to the changelog
 							changeData.AssetId = id
 							go results.Handler.AssetChangeLog(&changeData)
-							// 对资产进行更新,设置最新的扫描时间
+							// Update the asset, set the latest scan time
 						}
 						dataTmp.LastScanTime = dataTmp.Time
 						dataTmp.Time = oldAsset.Time
@@ -188,9 +188,9 @@ func (r *Runner) ModuleRun() error {
 						dataTmp.Tags = append(dataTmp.Tags, oldAsset.Tags...)
 						dataTmp.Tags = utils.Tools.RemoveStringDuplicates(dataTmp.Tags)
 						go results.Handler.AssetUpdate(id, dataTmp)
-						// 资产没有变化，不进行操作
+						// Asset unchanged, nothing to do
 					} else {
-						// 数据库中不存在该资产，直接插入。
+						// Asset does not exist in database, insert directly.
 						dataTmp.LastScanTime = dataTmp.Time
 						go results.Handler.AssetOtherInsert(&dataTmp)
 					}
@@ -237,7 +237,7 @@ func (r *Runner) ModuleRun() error {
 				close(resultChan)
 				resultWg.Wait()
 				r.Option.ModuleRunWg.Done()
-				doneCalled = true // 标记已调用 Done
+				doneCalled = true // Mark as called Done
 			}
 			nextModuleRun.Wait()
 			return nil
@@ -245,7 +245,7 @@ func (r *Runner) ModuleRun() error {
 			if !ok {
 				time.Sleep(3 * time.Second)
 				allPluginWg.Wait()
-				// 通道已关闭，结束处理
+				// Channel closed, end processing
 				if firstData {
 					end = time.Now()
 					duration := end.Sub(start)
@@ -255,7 +255,7 @@ func (r *Runner) ModuleRun() error {
 					close(resultChan)
 					resultWg.Wait()
 					r.Option.ModuleRunWg.Done()
-					doneCalled = true // 标记已调用 Done
+					doneCalled = true // Mark as called Done
 				}
 				logger.SlogInfoLocal(fmt.Sprintf("module %v target %v close resultChan", r.GetName(), r.Option.Target))
 				nextModuleRun.Wait()
@@ -296,7 +296,7 @@ func (r *Runner) ModuleRun() error {
 					return
 				}
 				if len(r.Option.AssetHandle) != 0 {
-					// 调用插件
+					// Call plugin
 					for _, pluginId := range r.Option.AssetHandle {
 						//var plgWg sync.WaitGroup
 						var plgWg sync.WaitGroup
@@ -398,7 +398,7 @@ func (r *Runner) ModuleRun() error {
 						}
 					}
 				}
-				// 如果没有开启此模块，或者开启此模块并且插件运行结束，将data发送到结果处理处
+				// If this module is not enabled, or it is enabled and plugins have finished, send data to result handling
 
 				switch ty {
 				case "other":

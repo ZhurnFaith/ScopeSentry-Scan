@@ -120,7 +120,7 @@ func (d *DnsTools) DNSdataToSubdomainResult(dnsData *retryabledns.DNSData) types
 	}
 }
 
-// KsubdomainVerify 利用Ksubdomain对域名进行验证
+// KsubdomainVerify verify domains with Ksubdomain
 func (d *DnsTools) KsubdomainVerify(target []string, result chan string, timeout time.Duration, externalCtx context.Context) {
 	randomString := Tools.GenerateRandomString(6)
 	if len(target) == 0 {
@@ -165,7 +165,7 @@ func (d *DnsTools) KsubdomainVerify(target []string, result chan string, timeout
 	}
 }
 
-// KsubdomainResultToStruct 将ksubdomain执行的结果转为SubdomainResult结构
+// KsubdomainResultToStruct convert ksubdomain output into the SubdomainResult structure
 func (d DnsTools) KsubdomainResultToStruct(input string) types.SubdomainResult {
 	if strings.Contains(input, "=>") {
 		Domains := strings.Split(input, "=>")

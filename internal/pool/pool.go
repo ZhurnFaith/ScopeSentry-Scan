@@ -109,7 +109,7 @@ func (pm *Manager) GetModulePoolSize(module string) (int, error) {
 		return 0, errors.New("module not found")
 	}
 
-	// 获取池的大小
+	// Get pool size
 	return pool.Running() + pool.Free(), nil
 }
 
@@ -150,7 +150,7 @@ func (pm *Manager) PrintRunningGoroutines(sortedModuleNames []string) {
 			running := pm.pools[moduleName].Running()
 			result += fmt.Sprintf("[%s]- run: %d, ", moduleName, running)
 		}
-		// 去掉最后一个多余的逗号和空格
+		// Remove the trailing extra comma and space
 		if len(result) > 0 {
 			result = result[:len(result)-2]
 			logger.SlogDebugLocal(result)
@@ -164,7 +164,7 @@ func (pm *Manager) GetModuleRunningGoroutines(module string) int {
 }
 
 func StartMonitoring() {
-	ticker := time.NewTicker(10 * time.Second) // 每隔10秒打印一次
+	ticker := time.NewTicker(10 * time.Second) // Print every 10 seconds
 	defer ticker.Stop()
 	var moduleNames []string
 	for moduleName := range PoolManage.pools {

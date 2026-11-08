@@ -39,7 +39,7 @@ func Register() {
 				"cpuNum":        0,
 				"TotleMem":      float64(memInfo.Total) / 1024 / 1024,
 				"memNum":        0,
-				"state":         1, //1运行中 2暂停 3未连接
+				"state":         1, //1 running, 2 paused, 3 not connected
 				"version":       global.VERSION,
 				"modulesConfig": modulesConfig,
 			}

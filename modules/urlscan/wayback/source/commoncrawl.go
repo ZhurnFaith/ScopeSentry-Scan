@@ -56,12 +56,12 @@ func CommoncrawlRun(rootUrl string, result chan Result, ctx context.Context) int
 		}
 	}
 	quantity := 0
-	// 遍历符合年份的API地址，获取URL
+	// Iterate over API addresses matching the year, get URL
 	for _, apiURL := range searchIndexes {
-		// 在每次调用 getURLs 时传递上下文
+		// Pass the context on each getURLs call
 		select {
 		case <-ctx.Done():
-			// 如果上下文被取消，则提前退出
+			// If the context is canceled, exit early
 			return quantity
 		default:
 			further, n := getURLs(apiURL, rootUrl, result, ctx)
@@ -77,7 +77,7 @@ func CommoncrawlRun(rootUrl string, result chan Result, ctx context.Context) int
 func getURLs(searchURL, rootURL string, result chan Result, ctx context.Context) (bool, int) {
 	currentSearchURL := fmt.Sprintf("%s?url=*.%s&output=text&fl=url", searchURL, rootURL)
 	client := &http.Client{
-		Timeout: 10 * time.Second, // 设置超时时间
+		Timeout: 10 * time.Second, // Set timeout
 	}
 	res, err := client.Get(currentSearchURL)
 	if err != nil {
@@ -100,7 +100,7 @@ func getURLs(searchURL, rootURL string, result chan Result, ctx context.Context)
 		}:
 			lineCount++
 		case <-ctx.Done():
-			// 如果上下文被取消，则提前退出
+			// If the context is canceled, exit early
 			return false, lineCount
 		}
 	}

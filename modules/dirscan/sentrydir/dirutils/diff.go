@@ -24,7 +24,7 @@ func (s *SequenceMatcher) Ratio() float64 {
 		return 1.0
 	}
 
-	// 仅用一个一维数组来保存前一行的数据
+	// Use a single 1D array to keep the previous row's data
 	curr := make([]int, n+1)
 
 	for j := 0; j <= n; j++ {
@@ -56,7 +56,7 @@ func (s *SequenceMatcher) Ratio2() float64 {
 		return 1.0
 	}
 
-	// 初始化一维数组
+	// Initialize 1D array
 	curr := make([]int, n+1)
 
 	for j := 0; j <= n; j++ {
@@ -72,9 +72,9 @@ func (s *SequenceMatcher) Ratio2() float64 {
 			if s.a[i-1] != s.b[j-1] {
 				cost = 1
 			}
-			curr[j] = dmin(curr[j]+1, // 插入
-				prev+1,    // 删除
-				temp+cost) // 替换
+			curr[j] = dmin(curr[j]+1, // Insert
+				prev+1,    // Delete
+				temp+cost) // Replace
 			prev = temp
 		}
 	}

@@ -44,7 +44,7 @@ func (r *Runner) ModuleRun() error {
 	var allPluginWg sync.WaitGroup
 	var resultWg sync.WaitGroup
 	var nextModuleRun sync.WaitGroup
-	// 创建一个共享的 result 通道
+	// Create a shared result channel
 	resultChan := make(chan interface{}, 1000)
 	go func() {
 		nextModuleRun.Add(1)
@@ -54,7 +54,7 @@ func (r *Runner) ModuleRun() error {
 			logger.SlogError(fmt.Sprintf("Next module run error: %v", err))
 		}
 	}()
-	// 结果处理 goroutine，异步读取插件的结果
+	// Result handling goroutine, reads plugin results asynchronously
 	resultWg.Add(1)
 	go func() {
 		defer resultWg.Done()
@@ -62,14 +62,14 @@ func (r *Runner) ModuleRun() error {
 			select {
 			case result, ok := <-resultChan:
 				if !ok {
-					// 如果 resultChan 关闭了，退出循环
-					// 此模块运行完毕，关闭下个模块的输入
+					// If resultChan is closed, exit the loop
+					// This module is done, close the next module's input
 					r.NextModule.CloseInput()
 					return
 				}
-				// 这里的输入为types.UrlResult，将types.UrlResult处理一下存入数据库并发送到下个模块
-				// 原始的types.AssetOther 、 types.AssetHttp 在读取input的时候已经发送到下个模块了
-				// 该结果已经在插件中进行去重
+				// Input here is types.UrlResult; process it, store it in the database and send it to the next module
+				// The original types.AssetOther and types.AssetHttp were already sent to the next module when input was read
+				// This result has already been deduplicated in the plugin
 				if urlResult, ok := result.(types.UrlResult); ok {
 					urlResult.TaskName = r.Option.TaskName
 					hash := utils.Tools.GenerateHash()
@@ -78,7 +78,7 @@ func (r *Runner) ModuleRun() error {
 						urlResult.Tags = append(urlResult.Tags, "api")
 					}
 					if !urlResult.IsFile {
-						// app文件不存入数据库url result
+						// app file is not stored in the database url result
 						go results.Handler.URL(&urlResult)
 					}
 					r.NextModule.GetInput() <- urlResult
@@ -102,9 +102,9 @@ func (r *Runner) ModuleRun() error {
 							if flag {
 								utils.Tools.DeleteFile(fmt.Sprintf("%v.dup", urlFileResult.Filepath))
 								cmd := exec.Command("uro", "-i", urlFileResult.Filepath, "-o", fmt.Sprintf("%v.dup", urlFileResult.Filepath))
-								// 执行命令并获取输出
+								// Run command and get output
 								_, err := cmd.CombinedOutput()
-								// 如果有错误，打印错误信息
+								// If there is an error, print the error message
 								if err != nil {
 									logger.SlogErrorLocal(fmt.Sprintf("%v run uro error: %v\n", urlFileResult.Filepath, err))
 								} else {
@@ -136,7 +136,7 @@ func (r *Runner) ModuleRun() error {
 				close(resultChan)
 				resultWg.Wait()
 				r.Option.ModuleRunWg.Done()
-				doneCalled = true // 标记已调用 Done
+				doneCalled = true // Mark as called Done
 			}
 			nextModuleRun.Wait()
 			return nil
@@ -144,7 +144,7 @@ func (r *Runner) ModuleRun() error {
 			if !ok {
 				time.Sleep(3 * time.Second)
 				allPluginWg.Wait()
-				// 通道已关闭，结束处理
+				// Channel closed, end processing
 				if firstData {
 					end = time.Now()
 					duration := end.Sub(start)
@@ -154,13 +154,13 @@ func (r *Runner) ModuleRun() error {
 					close(resultChan)
 					resultWg.Wait()
 					r.Option.ModuleRunWg.Done()
-					doneCalled = true // 标记已调用 Done
+					doneCalled = true // Mark as called Done
 				}
 				logger.SlogInfoLocal(fmt.Sprintf("module %v target %v close resultChan", r.GetName(), r.Option.Target))
 				nextModuleRun.Wait()
 				return nil
 			}
-			// 将原始数据发送到下个模块，这里的输入为 types.AssetOther 、 types.AssetHttp
+			// Send raw data to the next module; input here is types.AssetOther, types.AssetHttp
 			resultChan <- data
 
 			if !firstData {
@@ -172,34 +172,34 @@ func (r *Runner) ModuleRun() error {
 			allPluginWg.Add(1)
 			go func(data interface{}) {
 				defer allPluginWg.Done()
-				// 如果是AssetOther，不运行该模块，只运行http资产
+				// If it is AssetOther, skip this module, only run for http assets
 				httpData, ok := data.(types.AssetHttp)
 				if !ok {
 					return
 				}
-				// 对http资产在当前任务进行去重判断
+				// Deduplicate http assets within the current task
 
 				filename := utils.Tools.HashXX64String(strings.Replace(strings.Replace(httpData.URL, "http://", "", -1), "https://", "", -1))
 				//if !r.Option.IsStart {
 				//	flag := results.Duplicate.DuplicateUrlFileKey(filename, r.Option.ID)
 				//	if !flag {
-				//		// 重复 已经扫过了
+				//		// Duplicate, already scanned
 				//		return
 				//	}
 				//}
 				flag := results.Duplicate.DuplicateUrlFileKey(filename, r.Option.ID)
 				if !flag {
-					// 重复 已经扫过了
+					// Duplicate, already scanned
 					return
 				}
-				// 将原始url写入文件中
+				// Write raw urls to file
 				urlFilePath := filepath.Join(global.TmpDir, filename)
 				err := utils.Tools.WriteContentFileAppend(urlFilePath, httpData.URL+"\n")
 				if err != nil {
 				}
 
 				if len(r.Option.URLScan) != 0 {
-					// 调用插件
+					// Call plugin
 					for _, pluginId := range r.Option.URLScan {
 						//var plgWg sync.WaitGroup
 						var plgWg sync.WaitGroup
@@ -240,10 +240,10 @@ func (r *Runner) ModuleRun() error {
 							logger.SlogError(fmt.Sprintf("plugin %v not found", pluginId))
 						}
 					}
-					// 调用url去重工具 对url数据进行去重
+					// Call the url deduplication tool to deduplicate url data
 					rootDomain, _ := utils.Tools.GetRootDomain(httpData.Host)
 
-					// 发送urlfile
+					// Send urlfile
 					urlFile := types.UrlFile{
 						Host:       httpData.Host,
 						Filepath:   urlFilePath,
@@ -253,7 +253,7 @@ func (r *Runner) ModuleRun() error {
 
 				} else {
 					rootDomain, _ := utils.Tools.GetRootDomain(httpData.Host)
-					// 如果没有开启 把http转一个urlresult发往下个模块 用于检测首页的敏感信息泄露
+					// If not enabled, convert http into a urlresult and send it to the next module to check the home page for sensitive info leaks
 					r.NextModule.GetInput() <- types.UrlResult{
 						Input:      httpData.URL,
 						Output:     httpData.URL,
@@ -262,7 +262,7 @@ func (r *Runner) ModuleRun() error {
 						Body:       httpData.ResponseBody,
 						Status:     httpData.StatusCode,
 					}
-					// 发送urlfile
+					// Send urlfile
 					urlFile := types.UrlFile{
 						Host:       httpData.Host,
 						Filepath:   urlFilePath,

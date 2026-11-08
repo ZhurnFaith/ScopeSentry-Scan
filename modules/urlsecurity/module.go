@@ -38,7 +38,7 @@ func (r *Runner) ModuleRun() error {
 	var allPluginWg sync.WaitGroup
 	var resultWg sync.WaitGroup
 	var nextModuleRun sync.WaitGroup
-	// 创建一个共享的 result 通道
+	// Create a shared result channel
 	resultChan := make(chan interface{}, 1000)
 	go func() {
 		nextModuleRun.Add(1)
@@ -48,7 +48,7 @@ func (r *Runner) ModuleRun() error {
 			logger.SlogError(fmt.Sprintf("Next module run error: %v", err))
 		}
 	}()
-	// 结果处理 goroutine，异步读取插件的结果
+	// Result handling goroutine, reads plugin results asynchronously
 	resultWg.Add(1)
 	go func() {
 		defer resultWg.Done()
@@ -56,8 +56,8 @@ func (r *Runner) ModuleRun() error {
 			select {
 			case _, ok := <-resultChan:
 				if !ok {
-					// 如果 resultChan 关闭了，退出循环
-					// 此模块运行完毕，关闭下个模块的输入
+					// If resultChan is closed, exit the loop
+					// This module is done, close the next module's input
 					r.NextModule.CloseInput()
 					return
 				}
@@ -78,7 +78,7 @@ func (r *Runner) ModuleRun() error {
 				close(resultChan)
 				resultWg.Wait()
 				r.Option.ModuleRunWg.Done()
-				doneCalled = true // 标记已调用 Done
+				doneCalled = true // Mark as called Done
 			}
 			nextModuleRun.Wait()
 			return nil
@@ -86,7 +86,7 @@ func (r *Runner) ModuleRun() error {
 			if !ok {
 				time.Sleep(3 * time.Second)
 				allPluginWg.Wait()
-				// 通道已关闭，结束处理
+				// Channel closed, end processing
 				if firstData {
 					end = time.Now()
 					duration := end.Sub(start)
@@ -96,14 +96,14 @@ func (r *Runner) ModuleRun() error {
 					close(resultChan)
 					resultWg.Wait()
 					r.Option.ModuleRunWg.Done()
-					doneCalled = true // 标记已调用 Done
+					doneCalled = true // Mark as called Done
 				}
 				logger.SlogInfoLocal(fmt.Sprintf("module %v target %v close resultChan", r.GetName(), r.Option.Target))
 				nextModuleRun.Wait()
 				return nil
 			}
-			// 该模块接收的数据为types.CrawlerResult、types.UrlResult、types.AssetOther 、 types.AssetHttp
-			// 该模块处理types.CrawlerResult、types.UrlResult， 其余类型数据直接发送到下个模块
+			// This module receives types.CrawlerResult, types.UrlResult, types.AssetOther, types.AssetHttp
+			// This module handles types.CrawlerResult and types.UrlResult; other data types go directly to the next module
 			//switch data.(type) {
 			//case types.UrlResult:
 			//case types.CrawlerResult:
@@ -111,7 +111,7 @@ func (r *Runner) ModuleRun() error {
 			//	r.NextModule.GetInput() <- data
 			//	continue
 			//}
-			// 将数据发送给下个模块
+			// Send data to the next module
 			r.NextModule.GetInput() <- data
 			if !firstData {
 				start = time.Now()
@@ -123,7 +123,7 @@ func (r *Runner) ModuleRun() error {
 			go func(data interface{}) {
 				defer allPluginWg.Done()
 				if len(r.Option.URLSecurity) != 0 {
-					// 调用插件
+					// Call plugin
 					for _, pluginId := range r.Option.URLSecurity {
 						//var plgWg sync.WaitGroup
 						var plgWg sync.WaitGroup

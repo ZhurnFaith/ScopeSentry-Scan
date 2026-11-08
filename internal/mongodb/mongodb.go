@@ -28,7 +28,7 @@ type Client struct {
 
 var MongodbClient *Client
 
-//// NewMongoDbConnect 连接到MongoDB并返回一个MongoDBClient实例
+//// NewMongoDbConnect connect to MongoDB and return a MongoDBClient instance
 //func NewMongoDbConnect(Username string, Password string, IP string, Port string, Database string) (*Client, error) {
 //
 //	encodedPassword := url.QueryEscape(Password)
@@ -79,12 +79,12 @@ func Initialize() {
 	MongodbClient = &Client{client: client, database: db}
 }
 
-// GetCollection 获取指定集合
+// GetCollection get the specified collection
 func (c *Client) GetCollection(collectionName string) *mongo.Collection {
 	return c.client.Database("ScopeSentry").Collection(collectionName)
 }
 
-// FindAll 查询多个文档
+// FindAll query multiple documents
 func (c *Client) FindAll(collectionName string, query, selector, result interface{}) error {
 	collection := c.GetCollection(collectionName)
 	cur, err := collection.Find(context.Background(), query, options.Find().SetProjection(selector))
@@ -113,7 +113,7 @@ func (c *Client) FindOne(collectionName string, query, selector, result interfac
 }
 
 func (c *Client) FindFile(filename string) ([]byte, error) {
-	// 使用 GridFS bucket
+	// Use GridFS bucket
 	bucket, err := gridfs.NewBucket(c.database)
 	if err != nil {
 		return nil, err
@@ -133,27 +133,27 @@ func (c *Client) FindFile(filename string) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Update 更新单个文档
+// Update update one document
 func (c *Client) Update(collectionName string, selector, update interface{}) (*mongo.UpdateResult, error) {
 	collection := c.GetCollection(collectionName)
 	return collection.UpdateOne(context.Background(), selector, update)
 }
 
-// Upsert 更新或插入文档
+// Upsert upsert document
 func (c *Client) Upsert(collectionName string, selector, update interface{}) (*mongo.UpdateResult, error) {
 	collection := c.GetCollection(collectionName)
 	opts := options.Update().SetUpsert(true)
 	return collection.UpdateOne(context.Background(), selector, update, opts)
 }
 
-// BulkWrite 批量写入或更新
+// BulkWrite batch write or update
 func (c *Client) BulkWrite(collectionName string, operations []mongo.WriteModel) (*mongo.BulkWriteResult, error) {
 	collection := c.GetCollection(collectionName)
-	opts := options.BulkWrite().SetOrdered(false) // 设置无序执行，避免单个操作失败影响整体
+	opts := options.BulkWrite().SetOrdered(false) // Use unordered execution so a single failure does not affect the rest
 	return collection.BulkWrite(context.Background(), operations, opts)
 }
 
-// UpdateAll 更新多个文档
+// UpdateAll update multiple documents
 func (c *Client) UpdateAll(collectionName string, selector, update interface{}) (*mongo.UpdateResult, error) {
 	collection := c.GetCollection(collectionName)
 	return collection.UpdateMany(context.Background(), selector, update)
@@ -166,12 +166,12 @@ func (c *Client) InsertOne(collectionName string, document interface{}) (*mongo.
 
 func (c *Client) InsertMany(collectionName string, documents []interface{}) (*mongo.InsertManyResult, error) {
 	collection := c.GetCollection(collectionName)
-	// 设置 InsertMany 选项，允许非顺序插入
+	// Set InsertMany options to allow unordered inserts
 	opts := options.InsertMany().SetOrdered(false)
 	return collection.InsertMany(context.Background(), documents, opts)
 }
 
-// Close 关闭与MongoDB的连接
+// Close close connection to MongoDB
 func (c *Client) Close() {
 	if c.client != nil {
 		err := c.client.Disconnect(context.Background())
@@ -190,22 +190,22 @@ func (c *Client) Ping() error {
 	}
 	err := c.client.Ping(context.Background(), nil)
 	if err != nil {
-		return fmt.Errorf("MongoDB Ping失败: %v", err)
+		return fmt.Errorf("MongoDB Ping failed: %v", err)
 	}
 	return nil
 }
 
 func (c *Client) FindFilesByPattern(pattern string) (map[string][]byte, error) {
-	// 使用 GridFS bucket
+	// Use GridFS bucket
 	bucket, err := gridfs.NewBucket(c.database)
 	if err != nil {
 		return nil, err
 	}
 
-	// 创建正则表达式
-	regex := primitive.Regex{Pattern: pattern, Options: "i"} // "i" 选项表示不区分大小写
+	// Create regular expression
+	regex := primitive.Regex{Pattern: pattern, Options: "i"} // "i" option means case-insensitive
 
-	// 查询 GridFS 的 files 集合
+	// Query the GridFS files collection
 	collection := c.database.Collection("fs.files")
 	filter := bson.M{"filename": regex}
 	cursor, err := collection.Find(context.TODO(), filter)
@@ -221,13 +221,13 @@ func (c *Client) FindFilesByPattern(pattern string) (map[string][]byte, error) {
 			return nil, err
 		}
 
-		// 获取文件的 _id 字段
+		// Get the file's _id field
 		id, ok := fileInfo["_id"].(primitive.ObjectID)
 		if !ok {
-			return nil, fmt.Errorf("文件信息中没有 _id 字段")
+			return nil, fmt.Errorf("No _id field in file info")
 		}
 
-		// 通过 _id 查找文件内容
+		// Find file content by _id
 		dStream, err := bucket.OpenDownloadStream(id)
 		if err != nil {
 			return nil, err

@@ -26,17 +26,17 @@ func UpdateNode(content string) {
 	parts := strings.SplitN(content, "[*]", 3)
 	name := parts[0]
 	state := parts[1]
-	// 修改状态
+	// Change status
 	if state == "true" {
 		global.AppConfig.State = 1
 	} else {
 		global.AppConfig.State = 2
 	}
-	// 修改名称
+	// Rename
 	if name != global.AppConfig.NodeName {
-		// 旧的名称
+		// Old name
 		key := "node:" + global.AppConfig.NodeName
-		// 新的名称
+		// New name
 		global.AppConfig.NodeName = name
 		err := redis.RedisClient.Del(context.Background(), key)
 		if err != nil {
@@ -95,7 +95,7 @@ func UpdateModuleConfig(content string) {
 		"DirScan":             modulesConfig.DirScan.GoroutineCount,
 		"VulnerabilityScan":   modulesConfig.VulnerabilityScan.GoroutineCount,
 	}
-	// 修改模块的线程数量
+	// Change module thread count
 	for moduleName, newCount := range moduleGoroutineCounts {
 		switch moduleName {
 		case "SubdomainScan":
@@ -196,7 +196,7 @@ func UpdateModuleConfig(content string) {
 	}
 
 	nodeInfo := map[string]interface{}{
-		"state":         global.AppConfig.State, //1运行中 2暂停 3未连接
+		"state":         global.AppConfig.State, //1 running, 2 paused, 3 not connected
 		"modulesConfig": modulesConfigRedis,
 	}
 	key := "node:" + global.AppConfig.NodeName

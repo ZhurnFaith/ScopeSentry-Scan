@@ -37,23 +37,23 @@ func InitHandle() {
 }
 
 func (h *Handle) StartTask() {
-	h.mu.Lock()         // 锁定互斥锁
-	defer h.mu.Unlock() // 确保在函数结束时解锁
+	h.mu.Lock()         // Lock mutex
+	defer h.mu.Unlock() // Ensure unlock when function ends
 	h.RunningNum = h.RunningNum + 1
 	logger.SlogInfo(fmt.Sprintf("Running start value: %d", h.RunningNum))
 }
 
 func (h *Handle) EndTask() {
-	h.mu.Lock()         // 锁定互斥锁
-	defer h.mu.Unlock() // 确保在函数结束时解锁
+	h.mu.Lock()         // Lock mutex
+	defer h.mu.Unlock() // Ensure unlock when function ends
 	h.RunningNum = h.RunningNum - 1
 	h.FinNum = h.FinNum + 1
 	logger.SlogInfo(fmt.Sprintf("Running start value: %d Running end value: %d", h.RunningNum, h.FinNum))
 }
 
 func (h *Handle) GetRunFin() (int, int) {
-	h.mu.Lock()         // 锁定互斥锁
-	defer h.mu.Unlock() // 确保在函数结束时解锁
+	h.mu.Lock()         // Lock mutex
+	defer h.mu.Unlock() // Ensure unlock when function ends
 	return h.RunningNum, h.FinNum
 }
 
@@ -144,7 +144,7 @@ func (h *Handle) PopTaskId(id string) error {
 		return err
 	}
 	if exists {
-		// 获取列表中的所有元素
+		// Get all elements in the list
 		listLength, err := redis.RedisClient.LLen(context.Background(), TaskNodeName)
 		if err != nil {
 			logger.SlogError(fmt.Sprintf("PopTaskId Error getting list length: %v", err))
@@ -154,16 +154,16 @@ func (h *Handle) PopTaskId(id string) error {
 			logger.SlogInfo("PopTaskId list is empty.")
 			return err
 		}
-		// 使用 LRANGE 获取列表中的所有值
+		// Get all values in the list with LRANGE
 		values, err := redis.RedisClient.LRange(context.Background(), TaskNodeName, 0, listLength-1)
 		if err != nil {
 			logger.SlogError(fmt.Sprintf("PopTaskId Error fetching list values: %v", err))
 			return err
 		}
-		// 遍历列表，检查是否包含目标字符串
+		// Iterate over the list, check whether it contains the target string
 		for _, value := range values {
 			if strings.Contains(value, id) {
-				// 删除包含目标字符串的元素
+				// Delete elements containing the target string
 				err := redis.RedisClient.LRem(context.Background(), TaskNodeName, 0, value)
 				if err != nil {
 					logger.SlogError(fmt.Sprintf("PopTaskId removing value: %v", err))

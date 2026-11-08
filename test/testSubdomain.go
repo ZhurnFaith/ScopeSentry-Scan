@@ -21,12 +21,12 @@ package main
 //	//result := subdomainMode.Verify2([]string{"oauth.idp.blogin.att.com"})
 //	//fmt.Printf("%v", result)
 //	subfinderMode.SubfinderScan("baidu.com")
-//	// 记录程序结束时间
+//	// Record program end time
 //	end := time.Now()
 //
-//	// 计算时间差
+//	// Calculate time difference
 //	duration := end.Sub(start)
 //
-//	// 打印程序运行时间
-//	fmt.Printf("程序运行时间: %v\n", duration)
+//	// Print program run time
+//	fmt.Printf("Program uptime: %v\n", duration)
 //}

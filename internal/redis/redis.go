@@ -16,14 +16,14 @@ import (
 	"time"
 )
 
-// Client 结构体用于封装 Redis 客户端
+// Client struct wrapping the Redis client
 type Client struct {
 	client *redis.Client
 }
 
 var RedisClient *Client
 
-//// NewRedisConnect 用于创建一个新的 Redis 客户端
+//// NewRedisConnect used to create a new Redis client
 //func NewRedisConnect(ip, port, password string, db int) (*Client, error) {
 //	client := redis.NewClient(&redis.Options{
 //		Addr:           ip + ":" + port,
@@ -35,7 +35,7 @@ var RedisClient *Client
 //		MaxIdleConns:   10,
 //	})
 //
-//	// 检查连接是否正常
+//	// Check whether connection is healthy
 //	_, err := client.Ping(context.Background()).Result()
 //	if err != nil {
 //		fmt.Printf("failed to connect to Redis: %v", err)
@@ -56,7 +56,7 @@ func Initialize() {
 		MaxIdleConns:   10,
 	})
 
-	// 检查连接是否正常
+	// Check whether connection is healthy
 	_, err := client.Ping(context.Background()).Result()
 	if err != nil {
 		fmt.Printf("failed to connect to Redis: %v", err)
@@ -135,13 +135,13 @@ func (r *Client) SMembers(ctx context.Context, key string) ([]string, error) {
 	return r.client.SMembers(ctx, key).Result()
 }
 
-// PushToList 将一个或多个元素顺序存入 List（右侧），保持顺序
+// PushToList push one or more elements to the right of a List, preserving order
 func (r *Client) PushToList(ctx context.Context, key string, values ...interface{}) (int64, error) {
-	// 使用 RPUSH 保证元素顺序与传入顺序一致
+	// Use RPUSH to keep elements in the order they were passed
 	return r.client.RPush(ctx, key, values...).Result()
 }
 
-// LLen 获取列表的长度
+// LLen get list length
 func (r *Client) LLen(ctx context.Context, key string) (int64, error) {
 	if r.client == nil {
 		return 0, errors.New("redis client nil")
@@ -149,7 +149,7 @@ func (r *Client) LLen(ctx context.Context, key string) (int64, error) {
 	return r.client.LLen(ctx, key).Result()
 }
 
-// LRange 获取列表中指定范围的元素
+// LRange get elements in the specified range of the list
 func (r *Client) LRange(ctx context.Context, key string, start, stop int64) ([]string, error) {
 	if r.client == nil {
 		return nil, errors.New("redis client nil")
@@ -157,7 +157,7 @@ func (r *Client) LRange(ctx context.Context, key string, start, stop int64) ([]s
 	return r.client.LRange(ctx, key, start, stop).Result()
 }
 
-// LRem 删除列表中指定数量的元素
+// LRem delete the specified number of elements from the list
 func (r *Client) LRem(ctx context.Context, key string, count int64, value string) error {
 	if r.client == nil {
 		return errors.New("redis client nil")
@@ -165,24 +165,24 @@ func (r *Client) LRem(ctx context.Context, key string, count int64, value string
 	return r.client.LRem(ctx, key, count, value).Err()
 }
 
-// BatchGetAndDelete 批量获取并删除列表元素
+// BatchGetAndDelete batch get and delete list elements
 func (r *Client) BatchGetAndDelete(ctx context.Context, key string, count int64) ([]string, error) {
 	if r.client == nil {
 		return nil, errors.New("redis client nil")
 	}
 
-	// 获取列表中指定数量的元素
+	// Get the specified number of elements from the list
 	elements, err := r.LRange(ctx, key, 0, count-1)
 	if err != nil {
 		return nil, err
 	}
 
-	// 使用管道批量删除获取到的元素
+	// Batch delete fetched elements with a pipeline
 	pipe := r.client.Pipeline()
 	for _, element := range elements {
-		pipe.LRem(ctx, key, 0, element) // 0 表示删除所有匹配的元素
+		pipe.LRem(ctx, key, 0, element) // 0 means delete all matching elements
 	}
-	_, err = pipe.Exec(ctx) // 执行管道
+	_, err = pipe.Exec(ctx) // Execute pipeline
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +190,7 @@ func (r *Client) BatchGetAndDelete(ctx context.Context, key string, count int64)
 	return elements, nil
 }
 
-// SIsMember 检查成员是否存在于集合中
+// SIsMember check whether member exists in the set
 func (r *Client) SIsMember(ctx context.Context, key string, member interface{}) (bool, error) {
 	return r.client.SIsMember(ctx, key, member).Result()
 }
@@ -230,7 +230,7 @@ func (r *Client) Ping(ctx context.Context) error {
 	}
 	_, err := r.client.Ping(ctx).Result()
 	if err != nil {
-		return fmt.Errorf("Redis Ping失败: %v", err)
+		return fmt.Errorf("Redis Ping failed: %v", err)
 	}
 	return nil
 }

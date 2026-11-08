@@ -13,22 +13,22 @@ import (
 )
 
 func AcRun(testTitle, testHeader, testBody string) []*types.Fingerprint {
-	// 收集命中的指纹（按ID去重）
+	// Collect matched fingerprints (deduplicated by ID)
 	matchedFingerprintsMap := make(map[string]*types.Fingerprint) // key: fingerprintID
 
-	// 获取 matcher 引用，避免在函数执行过程中 global.WebFingers 被修改
+	// Get the matcher reference so global.WebFingers is not modified while the function runs
 	var matcher *types.ACMatcher
 	if global.WebFingers == nil || global.WebFingers.ACMatcher == nil {
 		return []*types.Fingerprint{}
 	}
 	matcher = global.WebFingers.ACMatcher
 
-	// 匹配title并收集指纹
+	// Match title and collect fingerprints
 	if matcher.TitleMatcher != nil {
 		titleRune := []rune(testTitle)
 		titleMatches := matcher.TitleMatcher.MultiPatternSearch(titleRune, false)
 		for _, term := range titleMatches {
-			// 根据匹配到的Word（[]rune）找到对应的pattern索引
+			// Find the pattern index for the matched Word ([]rune)
 			matchedPattern := string(term.Word)
 			if patternIndex, exists := matcher.TitlePatternMap[matchedPattern]; exists {
 				if patternIndex >= 0 && patternIndex < len(matcher.TitlePatterns) {
@@ -41,7 +41,7 @@ func AcRun(testTitle, testHeader, testBody string) []*types.Fingerprint {
 		}
 	}
 
-	// 匹配header并收集指纹
+	// Match header and collect fingerprints
 	if matcher.HeaderMatcher != nil {
 		headerRune := []rune(testHeader)
 		headerMatches := matcher.HeaderMatcher.MultiPatternSearch(headerRune, false)
@@ -58,7 +58,7 @@ func AcRun(testTitle, testHeader, testBody string) []*types.Fingerprint {
 		}
 	}
 
-	// 匹配body并收集指纹
+	// Match body and collect fingerprints
 	if matcher.BodyMatcher != nil {
 		bodyRune := []rune(testBody)
 		bodyMatches := matcher.BodyMatcher.MultiPatternSearch(bodyRune, false)
@@ -75,7 +75,7 @@ func AcRun(testTitle, testHeader, testBody string) []*types.Fingerprint {
 		}
 	}
 
-	// 转换为切片并返回
+	// Convert to slice and return
 	result := make([]*types.Fingerprint, 0, len(matchedFingerprintsMap))
 	for _, fp := range matchedFingerprintsMap {
 		result = append(result, fp)
