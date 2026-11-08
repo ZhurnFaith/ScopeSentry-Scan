@@ -62,7 +62,7 @@ func (p *Plugin) GetTaskId() string {
 func (p *Plugin) Log(msg string, tp ...string) {
 	var logTp string
 	if len(tp) > 0 {
-		logTp = tp[0] // 使用传入的参数
+		logTp = tp[0] // Use the parameters passed in
 	} else {
 		logTp = "i"
 	}
@@ -104,15 +104,15 @@ func (p *Plugin) GetModule() string {
 	return p.Module
 }
 
-// 判断字符串是否是有效的域名
+// Check whether string is a valid domain
 func isValidDomain(domain string) bool {
-	// 域名正则表达式（简化版）
+	// Domain regular expression (simplified)
 	domainRegex := `^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$`
 	re := regexp.MustCompile(domainRegex)
 	return re.MatchString(domain)
 }
 
-// 转换中文域名为 ASCII 兼容格式
+// Convert Chinese domain names to ASCII-compatible format
 func toASCII(domain string) (string, error) {
 	return idna.ToASCII(domain)
 }
@@ -137,49 +137,49 @@ var ipv6Regex = regexp.MustCompile(`^\[([0-9a-fA-F:]+)\]:(\d+)$`)
 
 // Execute
 //
-//  1. IP 地址
-//     输入: "192.168.1.1"
-//     输出: "192.168.1.1"
+//  1. IP address
+//     Input: "192.168.1.1"
+//     Output: "192.168.1.1"
 //
-//  2. 带协议的 URL（没有端口号）
-//     输入: "http://example.com"
-//     输出: "example.com"
+//  2. URL with protocol (without port)
+//     Input: "http://example.com"
+//     Output: "example.com"
 //
-//  3. 带协议的 URL（带端口号）
-//     输入: "http://example.com:8080"
-//     输出: "example.com"
-//     输出: "example.com:8080"
+//  3. URL with protocol (with port)
+//     Input: "http://example.com:8080"
+//     Output: "example.com"
+//     Output: "example.com:8080"
 //
-//  4. 带通配符的域名
-//     输入: "*.example.com"
-//     输出: "*.example.com"
-//     输入: "wda.*.example.com"
-//     输出: "wda.*.example.com"
+//  4. Wildcard domain
+//     Input: "*.example.com"
+//     Output: "*.example.com"
+//     Input: "wda.*.example.com"
+//     Output: "wda.*.example.com"
 //
-//  5. 不带协议的有效域名
-//     输入: "example.com"
-//     输出: "example.com"
+//  5. Valid domain without protocol
+//     Input: "example.com"
+//     Output: "example.com"
 //
-//  6. 中文域名
-//     输入: "例子.com"
-//     输出: "xn--fsq.com"
+//  6. Chinese domain name
+//     Input: "Example.com"
+//     Output: "xn--fsq.com"
 //
-//  7. 无效输入, 直接返回
-//     输入: "例子公司"
-//     输出: "Invalid input: 例子公司"
+//  7. Invalid input, return directly
+//     Input: "Example Company"
+//     Output: "Invalid input: Example Company"
 func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 	target, ok := input.(string)
 	if !ok {
 		logger.SlogError(fmt.Sprintf("%v error: %v input is not a string\n", p.Name, input))
 		return nil, errors.New("input is not a string")
 	}
-	// 检查是否是 IP 地址
+	// Check whether it is an IP address
 	if net.ParseIP(target) != nil {
-		// 如果是纯 IP 地址
+		// If it is a plain IP address
 		p.Result <- target
 		return nil, nil
 	}
-	// 输入CIDR:开头的 不进行分布式 直接将数据发送到rustscan进行扫描
+	// Input starting with CIDR: is not distributed, it is sent directly to rustscan for scanning
 	if strings.HasPrefix(target, "CIDR:") {
 		tg := strings.Replace(target, "CIDR:", "", 1)
 		tmpDominSkip := types.DomainSkip{Domain: tg, Skip: false, CIDR: true}
@@ -221,26 +221,26 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 		}
 	}
 
-	// 尝试解析 URL
+	// Try to parse URL
 	parsedURL, err := url.Parse(target)
 	if err == nil && parsedURL.Host != "" {
 		host := parsedURL.Host
 		rawHost := parsedURL.Host
-		// 检查是否有端口号
+		// Check whether there is a port number
 		if strings.Contains(host, ":") {
-			// 分割主机名和端口号
+			// Split hostname and port
 			hostParts := strings.Split(host, ":")
 			ipOrDomain := hostParts[0]
 			//port := hostParts[1]
 			rawHost = hostParts[0]
 			p.Result <- ipOrDomain
-			//// 判断主机部分是否为 IP 地址
+			//// Check whether the host part is an IP address
 			//if net.ParseIP(ipOrDomain) != nil {
-			//	// 处理 IP 地址 + 端口号
+			//	// Handle IP address + port
 			//	p.Result <- ipOrDomain
 			//	//p.Result <- ipOrDomain + ":" + port
 			//} else {
-			//	// 处理域名 + 端口号
+			//	// Handle domain + port
 			//	p.Result <- ipOrDomain
 			//	//p.Result <- host
 			//}
@@ -251,18 +251,18 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 			}
 			p.Result <- hostPort
 		} else {
-			// 检查主机部分是否是 IP 地址
+			// Check whether the host part is an IP address
 			//if net.ParseIP(host) != nil {
-			//	// 处理纯 IP 地址
+			//	// Handle plain IP address
 			//	p.Result <- host
 			//} else {
-			//	// 处理域名
+			//	// Handle domain
 			//	p.Result <- host
 			//}
 			p.Result <- host
 		}
 		path := parsedURL.Path
-		// 检查路径是否全部由 `/` 组成
+		// Check whether the path consists entirely of `/` compose
 		if strings.Trim(path, "/") == "" {
 		} else {
 			tmp := types.AssetOther{
@@ -271,7 +271,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 				UrlPath: path,
 				Type:    "http",
 			}
-			// 转换为 []interface{}
+			// Convert to []interface{}
 			var interfaceList []interface{}
 			interfaceList = append(interfaceList, tmp)
 			p.Result <- interfaceList
@@ -279,31 +279,31 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 		return nil, nil
 	}
 
-	// 处理 `*.domain.com` 或其他不包含协议的域名
+	// Handle `*.domain.com` or other domains without protocol
 	if strings.HasPrefix(target, "*.") || strings.Contains(target, ".*.") {
 		p.Result <- target
 		return nil, nil
 	}
-	// 处理ipv6
+	// Handle ipv6
 	if match := ipv6Regex.FindStringSubmatch(target); match != nil {
 		result := types.PortAlive{
 			Host: match[1],
-			IP:   match[1], // IPv6地址
-			Port: match[2], // 端口
+			IP:   match[1], // IPv6 address
+			Port: match[2], // Port
 		}
 		p.Result <- match[1]
 		p.Result <- result
 		return nil, nil
 	}
 
-	// 处理 127.0.0.1:666
+	// Handle 127.0.0.1:666
 	if strings.Contains(target, ":") {
 		data := strings.Split(target, ":")
 		if len(data) == 2 {
 			result := types.PortAlive{
 				Host: data[0],
 				IP:   "",
-				Port: data[1], // 端口
+				Port: data[1], // Port
 			}
 			p.Result <- data[0]
 			p.Result <- result
@@ -311,7 +311,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 		}
 	}
 
-	// 处理不包含协议的域名
+	// Handle domains without protocol
 	if isValidDomain(target) {
 		asciiDomain, err := toASCII(target)
 		if err == nil {
@@ -322,7 +322,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 	} else if net.ParseIP(target) != nil {
 		p.Result <- target
 	} else {
-		// 处理无效输入
+		// Handle invalid input
 		logger.SlogInfoLocal(fmt.Sprintf("%v error Invalid input:%v ", p.Name, input))
 	}
 

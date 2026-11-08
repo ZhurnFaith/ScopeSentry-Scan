@@ -11,14 +11,14 @@ import (
 	"github.com/cockroachdb/pebble"
 )
 
-// Settings 用于 PebbleDB 的配置
+// Settings configuration for PebbleDB
 type Settings struct {
 	DBPath       string
-	CacheSize    int64 // 缓存大小
-	MaxOpenFiles int   // 最大打开文件数
+	CacheSize    int64 // Cache size
+	MaxOpenFiles int   // Max open files
 }
 
-// GetPebbleOptions 根据 Settings 生成 pebble.Options
+// GetPebbleOptions generate from Settings pebble.Options
 func GetPebbleOptions(settings *Settings) *pebble.Options {
 	return &pebble.Options{
 		Cache:         pebble.NewCache(settings.CacheSize),

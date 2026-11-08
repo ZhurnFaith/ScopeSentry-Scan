@@ -24,7 +24,7 @@ import (
 )
 
 func Run(op options.TaskOptions) error {
-	// 清空临时文件
+	// Clear temporary files
 	defer CleanTmp()
 	var wg sync.WaitGroup
 	var start time.Time
@@ -32,7 +32,7 @@ func Run(op options.TaskOptions) error {
 	start = time.Now()
 	handler.TaskHandle.StartTask()
 	handler.TaskHandle.ProgressStart("scan", op.Target, op.ID, 1)
-	// 设置PassiveScan的input
+	// Set PassiveScan's input
 	op.ModuleRunWg = &wg
 	switch op.Type {
 	case "subdomainSource":
@@ -96,36 +96,36 @@ func Run(op options.TaskOptions) error {
 	duration := end.Sub(start)
 	select {
 	case <-contextmanager.GlobalContextManagers.GetContext(op.ID).Done():
-		// 增加完成计数
+		// Increment completed count
 		handler.TaskHandle.EndTask()
 		return fmt.Errorf("task Cancel")
 	default:
-		// 记录模块完成日志
+		// Log module completion
 		handler.TaskHandle.ProgressEnd("scan", op.Target, op.ID, 1, duration)
-		// 记录完成时间以及完成目标
+		// Record completion time and completed targets
 		handler.TaskHandle.TaskEnd(op.Target, op.ID)
-		// 增加完成计数
+		// Increment completed count
 		handler.TaskHandle.EndTask()
 		return nil
 	}
 }
 
 func extractDomainAndPort(inputURL string) (string, string, string, error) {
-	// 解析 URL
+	// Parse URL
 	parsedURL, err := url.Parse(inputURL)
 	if err != nil {
 		return "", "", "", err
 	}
 
-	// 提取域名
+	// Extract domain
 	domain := parsedURL.Hostname()
 
-	// 提取端口，返回空字符串表示没有端口
+	// Extract port, empty string means no port
 	port := parsedURL.Port()
 
-	// 如果没有指定端口，返回默认值
+	// If no port is specified, return the default
 	if port == "" {
-		// 判断 URL 协议，常见的 http 默认端口是 80，https 默认端口是 443
+		// Check the URL scheme; the common http default port is 80, https default port is 443
 		switch parsedURL.Scheme {
 		case "http":
 			port = "80"
@@ -140,23 +140,23 @@ func extractDomainAndPort(inputURL string) (string, string, string, error) {
 func CleanTmp() {
 	osType := runtime.GOOS
 	if osType == "windows" {
-		// Windows 系统处理
+		// Windows system handling
 		//handleWindowsTemp()
 	} else if osType == "linux" {
-		// Linux 系统处理
+		// Linux system handling
 		utils.Tools.HandleLinuxTemp()
 	}
 }
 
 //func handleWindowsTemp() {
-//	// 获取当前用户名
+//	// Get current username
 //	currentUser, err := user.Current()
 //	if err != nil {
 //		return
 //	}
 //	tempDir := fmt.Sprintf(`C:\Users\%s\AppData\Local\Temp`, currentUser.Username)
 //
-//	// 定义 PowerShell 命令
+//	// Define PowerShell command
 //	psCmd := fmt.Sprintf(`
 //Get-ChildItem -Path "%s" -Directory |
 //Where-Object {
@@ -170,12 +170,12 @@ func CleanTmp() {
 //Remove-Item -Recurse -Force
 //`, tempDir)
 //
-//	// 执行 PowerShell 命令
+//	// Run PowerShell command
 //	cmd := exec.Command("powershell", "-Command", psCmd)
 //	_, err = cmd.CombinedOutput()
 //	if err != nil {
-//		fmt.Printf("执行 PowerShell 命令时出错: %v\n", err)
-//		logger.SlogWarn("清空临时文件C:\\Users\\{username}\\AppData\\Local\\Temp\\[^\\d{9}$、ScopeSentry*、.org.chromium.Chromium*、*_badger]失败，请手动清空，防止占用磁盘过大，")
+//		fmt.Printf("Error running the PowerShell command: %v\n", err)
+//		logger.SlogWarn("Clear temporary files C:\\Users\\{username}\\AppData\\Local\\Temp\\[^\\d{9}$, ScopeSentry*, .org.chromium.Chromium*, *_badger] failed, please clear them manually to avoid filling the disk,")
 //		return
 //	}
 //}

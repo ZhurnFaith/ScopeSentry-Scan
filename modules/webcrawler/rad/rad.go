@@ -94,7 +94,7 @@ func (p *Plugin) GetTaskId() string {
 func (p Plugin) Log(msg string, tp ...string) {
 	var logTp string
 	if len(tp) > 0 {
-		logTp = tp[0] // 使用传入的参数
+		logTp = tp[0] // Use the parameters passed in
 	} else {
 		logTp = "i"
 	}
@@ -248,7 +248,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 		var req Request
 		err := json.Unmarshal([]byte(result), &req)
 		if err != nil {
-			logger.SlogErrorLocal(fmt.Sprintf("解析 JSON 错误: %s", err))
+			logger.SlogErrorLocal(fmt.Sprintf("JSON parse error: %s", err))
 			continue
 		}
 		parsedURL, err := url.Parse(req.URL)
@@ -278,7 +278,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 					decoder := json.NewDecoder(strings.NewReader(body))
 					if err := decoder.Decode(&jsonData); err != nil {
 					} else {
-						// 遍历JSON中的key
+						// Iterate over JSON key
 						for bdkey := range jsonData {
 							postKey += bdkey + ", "
 							paramMap.Add(bdkey, "")
@@ -328,10 +328,10 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 	duration := end.Sub(start)
 	osType := runtime.GOOS
 	if osType == "windows" {
-		// Windows 系统处理
+		// Windows system handling
 		//handleWindowsTemp()
 	} else if osType == "linux" {
-		// Linux 系统处理
+		// Linux system handling
 		utils.Tools.HandleLinuxTemp()
 	}
 	for domain, paramSet := range params {

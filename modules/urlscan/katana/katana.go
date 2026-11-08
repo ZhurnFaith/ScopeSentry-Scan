@@ -88,7 +88,7 @@ func (p *Plugin) GetTaskId() string {
 func (p *Plugin) Log(msg string, tp ...string) {
 	var logTp string
 	if len(tp) > 0 {
-		logTp = tp[0] // 使用传入的参数
+		logTp = tp[0] // Use the parameters passed in
 	} else {
 		logTp = "i"
 	}
@@ -311,25 +311,25 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 			continue
 		}
 		visited[url] = struct{}{}
-		// 确保 Response 不为 nil
+		// Ensure Response is not nil
 		if katanaResult.Response != nil && katanaResult.Response.StoredResponseBodyPath != "" {
 			path := katanaResult.Response.StoredResponseBodyPath
 
-			// 尝试读取文件内容
+			// Try to read file content
 			if optimized, err := utils.Tools.ReadFileToStringOptimized(path, int64(responseSize)); err == nil {
 				katanaResult.Response.Body = optimized
 			} else {
 				//if !errors.Is(err, os.ErrNotExist) {
-				//	// 非文件不存在的错误才打印日志
+				//	// Only log errors other than file not found
 				//	logger.SlogWarnLocal(fmt.Sprintf("Read file failed: %s, error: %v", path, err))
 				//}
 				logger.SlogWarnLocal(fmt.Sprintf("url:%v Read file failed: %s, error: %v", katanaResult.Request.URL, path, err))
 			}
 
-			// 删除临时文件（若失败仅警告）
+			// Delete temporary file (only warn on failure)
 			utils.Tools.DeleteFile(path)
 		} else {
-			// 没有 Response 或路径为空
+			// No Response or path is empty
 			//logger.SlogDebug(fmt.Sprintf("Skip result, no valid StoredResponseBodyPath (Response: %v)", katanaResult.Response))
 		}
 
@@ -378,7 +378,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 		//	logger.SlogInfoLocal(fmt.Sprintf("%v GetRootDomain error: %v", katanaResult.Request.URL, err))
 		//	rootDomain = parsedURL.Hostname()
 		//}
-		//// 去重
+		//// Deduplicate
 		//flag := results.Duplicate.URL(katanaResult.Request.URL, p.TaskId)
 		//if flag {
 		//	urlNumber += 1
@@ -413,10 +413,10 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 
 	osType := runtime.GOOS
 	if osType == "windows" {
-		// Windows 系统处理
+		// Windows system handling
 		//handleWindowsTemp()
 	} else if osType == "linux" {
-		// Linux 系统处理
+		// Linux system handling
 		utils.Tools.HandleLinuxTemp()
 	}
 	for domain, paramSet := range params {
@@ -480,7 +480,7 @@ func (p *Plugin) ParseResult(katanaResult *types.KatanaResult, taskId string, ur
 		logger.SlogInfoLocal(fmt.Sprintf("%v GetRootDomain error: %v", katanaResult.Request.URL, err))
 		rootDomain = ""
 	}
-	// 去重
+	// Deduplicate
 	flag := results.Duplicate.URL(katanaResult.Request.URL, p.TaskId)
 	if flag {
 		*urlNumber++

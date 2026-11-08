@@ -9,11 +9,11 @@ package types
 
 import goahocorasick "github.com/anknown/ahocorasick"
 
-// Fingerprint 指纹定义
+// Fingerprint fingerprint definition
 type Fingerprint struct {
 	Name           string   `yaml:"name"`
 	ID             string   `yaml:"id"`
-	Tags           []string `yaml:"tags"` // 关联 POC
+	Tags           []string `yaml:"tags"` // Associate POC
 	Category       string   `yaml:"category"`
 	ParentCategory string   `yaml:"parent_category"`
 	Company        string   `yaml:"company"`
@@ -24,15 +24,15 @@ type FingerprintYaml struct {
 	Fingerprint Fingerprint `yaml:"fingerprint"`
 }
 
-// Rule 规则定义
+// Rule rule definition
 type Rule struct {
-	Logic      string      `yaml:"logic"` // AND 或 OR
+	Logic      string      `yaml:"logic"` // AND or OR
 	Conditions []Condition `yaml:"conditions"`
 }
 
-// Condition 条件定义（支持普通条件和嵌套条件组）
+// Condition condition definition (supports regular conditions and nested condition groups)
 type Condition struct {
-	// 普通条件字段
+	// Regular condition field
 	Location    string `yaml:"location,omitempty"`   // body, header, title, request
 	MatchType   string `yaml:"match_type,omitempty"` // regex, contains, extract, active
 	Pattern     string `yaml:"pattern,omitempty"`
@@ -42,16 +42,16 @@ type Condition struct {
 	DynamicPath string `yaml:"dynamic_path,omitempty"`
 	Method      string `yaml:"method,omitempty"`
 
-	// 嵌套条件组字段
-	Logic      string      `yaml:"logic,omitempty"`      // AND 或 OR（用于嵌套组）
-	Conditions []Condition `yaml:"conditions,omitempty"` // 子条件或嵌套组
+	// Nested condition group field
+	Logic      string      `yaml:"logic,omitempty"`      // AND or OR (for nested groups)
+	Conditions []Condition `yaml:"conditions,omitempty"` // Sub-condition or nested group
 }
 
 type PatternInfo struct {
-	Pattern       string // pattern字符串
+	Pattern       string // pattern string
 	Location      string // title, header, body
-	FingerprintID string // 关联的fingerprint ID（优化内存，避免重复存储Fingerprint指针）
-	RuleIndex     int    // 关联的rule索引
+	FingerprintID string // Associated fingerprint ID (saves memory, avoids storing Fingerprint pointers repeatedly)
+	RuleIndex     int    // Associated rule index
 }
 
 type WebFingerCore struct {
@@ -65,12 +65,12 @@ type ACMatcher struct {
 	TitlePatterns  []PatternInfo
 	HeaderPatterns []PatternInfo
 	BodyPatterns   []PatternInfo
-	// Pattern到索引的映射（用于根据匹配结果找到PatternInfo）
-	TitlePatternMap  map[string]int // pattern字符串 -> PatternInfo索引
+	// Pattern to index mapping (to find PatternInfo from match results)
+	TitlePatternMap  map[string]int // pattern string -> PatternInfo index
 	HeaderPatternMap map[string]int
 	BodyPatternMap   map[string]int
-	// Fingerprint ID到Fingerprint的映射（优化内存，避免在PatternInfo中重复存储）
+	// Fingerprint ID to Fingerprint mapping (saves memory, avoids storing it repeatedly in PatternInfo)
 	FingerprintMap map[string]*Fingerprint // fingerprintID -> Fingerprint
-	// 无法使用AC自动机的fingerprint列表
+	// List of fingerprints that cannot use Aho-Corasick
 	NonACFingerprints []*Fingerprint
 }

@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	// AbsolutePath 全局变量
+	// AbsolutePath global variables
 	AbsolutePath string
 	ConfigPath   string
 	ConfigDir    string

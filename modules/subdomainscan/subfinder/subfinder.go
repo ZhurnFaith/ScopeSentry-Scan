@@ -63,7 +63,7 @@ func (p *Plugin) GetTaskId() string {
 func (p *Plugin) Log(msg string, tp ...string) {
 	var logTp string
 	if len(tp) > 0 {
-		logTp = tp[0] // 使用传入的参数
+		logTp = tp[0] // Use the parameters passed in
 	} else {
 		logTp = "i"
 	}
@@ -171,7 +171,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 	subResult := []string{}
 
 	rawCount := 1
-	// 将原始域名增加到子域名列表
+	// Add the original domain to the subdomain list
 	subfinderOpts := &runner.Options{
 		Threads:            threads,            // Thread controls the number of threads to use for active enumerations
 		Timeout:            timeout,            // Timeout is the seconds to wait for sources to respond
@@ -207,7 +207,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 	//subdomainVerificationResult := make(chan string, 100)
 	//go utils.DNS.KsubdomainVerify(rawSubdomain, subdomainVerificationResult, 1*time.Hour, contextmanager.GlobalContextManagers.GetContext(p.GetTaskId()))
 	//
-	//// 读取结果
+	//// Read result
 	//for result := range subdomainVerificationResult {
 	//	subdomainResult := utils.DNS.KsubdomainResultToStruct(result)
 	//	if subdomainResult.Host != "" {

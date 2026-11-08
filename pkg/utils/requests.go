@@ -74,7 +74,7 @@ func InitializeRequests() {
 
 func (r *request) HttpGet(uri string) (types.HttpResponse, error) {
 	req, resp := fasthttp.AcquireRequest(), fasthttp.AcquireResponse()
-	// 最后需要归还req、resp到池中
+	// Finally req and resp must be returned to the pool
 	defer func() {
 		fasthttp.ReleaseRequest(req)
 		fasthttp.ReleaseResponse(resp)
@@ -107,7 +107,7 @@ func (r *request) HttpGet(uri string) (types.HttpResponse, error) {
 }
 func (r *request) HttpGetByte(uri string) ([]byte, error) {
 	req, resp := fasthttp.AcquireRequest(), fasthttp.AcquireResponse()
-	// 最后需要归还req、resp到池中
+	// Finally req and resp must be returned to the pool
 	defer func() {
 		fasthttp.ReleaseRequest(req)
 		fasthttp.ReleaseResponse(resp)
@@ -148,7 +148,7 @@ func fixJSONNewlines(b []byte) []byte {
 		}
 
 		if inString && (c == '\n' || c == '\r') {
-			// 转义换行
+			// Escape newlines
 			out = append(out, '\\', 'n')
 			continue
 		}
@@ -190,7 +190,7 @@ func (r *request) HttpPost(uri string, requestBody []byte, ct string) (error, Ht
 
 func (r *request) HttpGetWithCustomHeader(uri string, customHeaders []string) (types.HttpResponse, error) {
 	req, resp := fasthttp.AcquireRequest(), fasthttp.AcquireResponse()
-	// 最后需要归还req、resp到池中
+	// Finally req and resp must be returned to the pool
 	defer func() {
 		fasthttp.ReleaseRequest(req)
 		fasthttp.ReleaseResponse(resp)
@@ -199,7 +199,7 @@ func (r *request) HttpGetWithCustomHeader(uri string, customHeaders []string) (t
 	req.Header.SetMethod(fasthttp.MethodGet)
 	req.SetRequestURI(uri)
 
-	// 设置自定义 headers
+	// Set custom headers
 	for _, header := range customHeaders {
 		parts := strings.SplitN(header, ":", 2)
 		if len(parts) == 2 {
@@ -212,10 +212,10 @@ func (r *request) HttpGetWithCustomHeader(uri string, customHeaders []string) (t
 	}
 	tmp := types.HttpResponse{}
 	tmp.Url = uri
-	// 定义最大响应体大小 (100KB)
+	// Define max response body size (100KB)
 	const maxBodySize = 4 * 1024 * 1024
 
-	// 截断 Body
+	// Truncate Body
 	body := resp.Body()
 	if len(body) > maxBodySize {
 		body = body[:maxBodySize]
@@ -241,7 +241,7 @@ func (r *request) HttpGetWithCustomHeader(uri string, customHeaders []string) (t
 
 func (r *request) HttpGetByteWithCustomHeader(uri string, customHeaders []string) ([]byte, error) {
 	req, resp := fasthttp.AcquireRequest(), fasthttp.AcquireResponse()
-	// 最后需要归还req、resp到池中
+	// Finally req and resp must be returned to the pool
 	defer func() {
 		fasthttp.ReleaseRequest(req)
 		fasthttp.ReleaseResponse(resp)
@@ -250,7 +250,7 @@ func (r *request) HttpGetByteWithCustomHeader(uri string, customHeaders []string
 	req.Header.SetMethod(fasthttp.MethodGet)
 	req.SetRequestURI(uri)
 
-	// 设置自定义 headers
+	// Set custom headers
 	for _, header := range customHeaders {
 		parts := strings.SplitN(header, ":", 2)
 		if len(parts) == 2 {
@@ -274,7 +274,7 @@ func (r *request) HttpPostWithCustomHeader(uri string, requestBody []byte, ct st
 	req.Header.SetMethod(fasthttp.MethodPost)
 	req.SetRequestURI(uri)
 
-	// 设置自定义 headers
+	// Set custom headers
 	for _, header := range customHeaders {
 		parts := strings.SplitN(header, ":", 2)
 		if len(parts) == 2 {
@@ -309,16 +309,16 @@ func (r *request) HttpGetNoRes(uri string) error {
 		fasthttp.ReleaseResponse(resp)
 	}()
 
-	// 设置请求 URI
+	// Set request URI
 	req.SetRequestURI(uri)
 
 	req.Header.SetMethod(fasthttp.MethodGet)
 
-	// 发送请求
+	// Send request
 	if err := HttpClient.Do(req, resp); err != nil {
 		return err
 	}
-	// 直接丢弃响应体（或者关闭它）
+	// Discard the response body directly (or close it)
 	resp.Reset()
 	return nil
 }
@@ -350,11 +350,11 @@ func (r *request) HttpGetNoResWithCustomHeader(uri string, customHeaders []strin
 		fasthttp.ReleaseResponse(resp)
 	}()
 
-	// 设置请求 URI
+	// Set request URI
 	req.SetRequestURI(uri)
 	req.Header.SetMethod(fasthttp.MethodGet)
 
-	// 设置自定义 headers
+	// Set custom headers
 	for _, header := range customHeaders {
 		parts := strings.SplitN(header, ":", 2)
 		if len(parts) == 2 {
@@ -362,11 +362,11 @@ func (r *request) HttpGetNoResWithCustomHeader(uri string, customHeaders []strin
 		}
 	}
 
-	// 发送请求
+	// Send request
 	if err := HttpClient.Do(req, resp); err != nil {
 		return err
 	}
-	// 直接丢弃响应体（或者关闭它）
+	// Discard the response body directly (or close it)
 	resp.Reset()
 	return nil
 }
@@ -380,7 +380,7 @@ func (r *request) HttpPostNoResWithCustomHeader(uri string, requestBody []byte, 
 	req.Header.SetMethod(fasthttp.MethodPost)
 	req.SetRequestURI(uri)
 
-	// 设置自定义 headers
+	// Set custom headers
 	for _, header := range customHeaders {
 		parts := strings.SplitN(header, ":", 2)
 		if len(parts) == 2 {
@@ -428,8 +428,8 @@ func (r *request) TcpRecv(ip string, port uint16) ([]byte, error) {
 }
 
 func (r *request) Httpx(targets []string, resultCallback func(r types.AssetHttp), cdncheck string, screenshot bool, screenshotTimeout int, tLSProbe bool, followRedirects bool, ctx context.Context, executionTimeout int, bypassHeader bool) {
-	// 设置超时上下文
-	timeout := time.Duration(executionTimeout) * time.Minute // 设置超时时间
+	// Set timeout context
+	timeout := time.Duration(executionTimeout) * time.Minute // Set timeout
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	rootDomain := ""
@@ -495,14 +495,14 @@ func (r *request) Httpx(targets []string, resultCallback func(r types.AssetHttp)
 		DisableStdout:             true,
 		//InputFile: "./targetDomains.txt", // path to file containing the target domains list
 		OnResult: func(r runner.Result) {
-			// 检查上下文是否已关闭
+			// Check whether context is closed
 			select {
 			case <-ctx.Done():
-				// 如果上下文关闭，直接返回
+				// If context is closed, return directly
 				logger.SlogWarnLocal(fmt.Sprintf("Context closed before processing result for %s", r.Input))
 				return
 			default:
-				// 继续处理结果
+				// Continue processing results
 				if r.Err != nil {
 					logger.SlogDebugLocal(fmt.Sprintf("HttpxScan error %s: %s", r.Input, r.Err))
 				} else {
@@ -523,38 +523,38 @@ func (r *request) Httpx(targets []string, resultCallback func(r types.AssetHttp)
 	}
 	defer httpxRunner.Close()
 
-	// 创建一个通道，用于通知任务完成
+	// Create a channel to signal task completion
 	done := make(chan struct{})
 
-	// 启动一个 goroutine 执行 httpxRunner，并在执行完后通知主程序
+	// Start a goroutine to run httpxRunner and notify the main program when done
 	go func() {
-		httpxRunner.RunEnumeration() // 执行 httpx 扫描
-		close(done)                  // 扫描完成后关闭通道，通知主程序
+		httpxRunner.RunEnumeration() // Run httpx scan
+		close(done)                  // Close channel after scan completes to notify the main program
 	}()
 
 	select {
-	case <-ctx.Done(): // 超时后返回
+	case <-ctx.Done(): // Return after timeout
 		logger.SlogWarnLocal(fmt.Sprintf("HttpxScan for %s timed out after %v", targets, timeout))
 		return
-	case <-done: // 扫描完成后继续执行
+	case <-done: // Continue after scan completes
 		logger.SlogDebugLocal(fmt.Sprintf("HttpxScan for %s completed successfully", targets))
 	}
 }
 
-// HttpGetWithRetry 发起一个带重试机制和代理支持的 HTTP GET 请求。
-// 参数：
-//   - requestURL: 请求地址
-//   - timeout: 每次请求的超时时间
-//   - maxRetries: 最大重试次数
-//   - retryInterval: 每次重试之间的等待间隔
-//   - headers: 请求头（如 User-Agent）
-//   - proxyURL: 代理地址，若为空则不使用代理
+// HttpGetWithRetry send an HTTP GET request with retries and proxy support.
+// Parameters:
+//   - requestURL: request URL
+//   - timeout: timeout per request
+//   - maxRetries: max retries
+//   - retryInterval: wait interval between retries
+//   - headers: request headers (e.g. User-Agent)
+//   - proxyURL: proxy address, no proxy if empty
 //
-// 返回：
-//   - *http.Response: 成功返回响应体指针
-//   - error: 若请求多次失败则返回最后的错误
+// Returns:
+//   - *http.Response: return response body pointer on success
+//   - error: if the request fails multiple times, return the last error
 func (r *request) HttpGetWithRetry(requestURL string, timeout time.Duration, maxRetries int, retryInterval time.Duration, headers map[string]string, proxyURL string) (*http.Response, error) {
-	// 配置 Transport，控制连接和响应头的超时时间
+	// Configure Transport to control connection and response header timeouts
 	var transport *http.Transport
 	if proxyURL != "" {
 		proxy, err := url.Parse(proxyURL)
@@ -565,51 +565,51 @@ func (r *request) HttpGetWithRetry(requestURL string, timeout time.Duration, max
 		transport = &http.Transport{
 			Proxy: http.ProxyURL(proxy),
 			DialContext: (&net.Dialer{
-				Timeout:   timeout, // 连接超时
+				Timeout:   timeout, // Connection timeout
 				KeepAlive: 30 * time.Second,
 			}).DialContext,
-			TLSHandshakeTimeout:   timeout, // TLS 握手超时
-			ResponseHeaderTimeout: timeout, // 等响应头最大时间
+			TLSHandshakeTimeout:   timeout, // TLS handshake timeout
+			ResponseHeaderTimeout: timeout, // Max time to wait for response headers
 		}
 	} else {
 		transport = &http.Transport{
 			DialContext: (&net.Dialer{
-				Timeout:   timeout, // 连接超时
+				Timeout:   timeout, // Connection timeout
 				KeepAlive: 30 * time.Second,
 			}).DialContext,
-			TLSHandshakeTimeout:   timeout, // TLS 握手超时
-			ResponseHeaderTimeout: timeout, // 等响应头最大时间
+			TLSHandshakeTimeout:   timeout, // TLS handshake timeout
+			ResponseHeaderTimeout: timeout, // Max time to wait for response headers
 		}
 	}
 
-	// 创建 HTTP 客户端（不设置整体超时）
+	// Create HTTP client (no overall timeout)
 	client := &http.Client{
 		Transport: transport,
-		Timeout:   0, // 不限制总耗时，避免 body 读取被中断
+		Timeout:   0, // No total time limit, so body reads are not interrupted
 	}
 
 	var resp *http.Response
 	var err error
 
-	// 重试机制
+	// Retry mechanism
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		req, reqErr := http.NewRequest("GET", requestURL, nil)
 		if reqErr != nil {
 			return nil, reqErr
 		}
 
-		// 设置请求头
+		// Set request headers
 		for k, v := range headers {
 			req.Header.Set(k, v)
 		}
 
-		// 发起请求
+		// Send request
 		resp, err = client.Do(req)
 		if err == nil {
 			return resp, nil
 		}
 
-		// 请求失败，记录日志并重试
+		// Request failed, log and retry
 		logger.SlogWarnLocal(fmt.Sprintf("[%v] GET attempt %d failed: %v", requestURL, attempt, err))
 		if attempt < maxRetries {
 			logger.SlogWarnLocal(fmt.Sprintf("Retrying GET %v after %v...", requestURL, retryInterval))
@@ -620,21 +620,21 @@ func (r *request) HttpGetWithRetry(requestURL string, timeout time.Duration, max
 	return nil, err
 }
 
-// HttpPostWithRetry 发起一个带重试机制和代理支持的 HTTP POST 请求。
-// 参数：
-//   - requestURL: 请求地址
-//   - body: 请求体（可以是 JSON、表单等）
-//   - timeout: 每次请求的超时时间
-//   - maxRetries: 最大重试次数
-//   - retryInterval: 每次重试之间的等待间隔
-//   - headers: 请求头（通常需设置 Content-Type）
-//   - proxyURL: 代理地址，若为空则不使用代理
+// HttpPostWithRetry send an HTTP POST request with retries and proxy support.
+// Parameters:
+//   - requestURL: request URL
+//   - body: request body (JSON, form, etc.)
+//   - timeout: timeout per request
+//   - maxRetries: max retries
+//   - retryInterval: wait interval between retries
+//   - headers: request headers (usually Content-Type must be set)
+//   - proxyURL: proxy address, no proxy if empty
 //
-// 返回：
-//   - *http.Response: 成功返回响应体指针
-//   - error: 若请求多次失败则返回最后的错误
+// Returns:
+//   - *http.Response: return response body pointer on success
+//   - error: if the request fails multiple times, return the last error
 func (r *request) HttpPostWithRetry(requestURL string, body io.Reader, timeout time.Duration, maxRetries int, retryInterval time.Duration, headers map[string]string, proxyURL string) (*http.Response, error) {
-	// 配置 Transport，控制连接和响应头的超时时间
+	// Configure Transport to control connection and response header timeouts
 	var transport *http.Transport
 	if proxyURL != "" {
 		proxy, err := url.Parse(proxyURL)
@@ -645,7 +645,7 @@ func (r *request) HttpPostWithRetry(requestURL string, body io.Reader, timeout t
 		transport = &http.Transport{
 			Proxy: http.ProxyURL(proxy),
 			DialContext: (&net.Dialer{
-				Timeout:   timeout, // TCP连接超时
+				Timeout:   timeout, // TCP connection timeout
 				KeepAlive: 30 * time.Second,
 			}).DialContext,
 			TLSHandshakeTimeout:   timeout,
@@ -662,7 +662,7 @@ func (r *request) HttpPostWithRetry(requestURL string, body io.Reader, timeout t
 		}
 	}
 
-	// 创建 HTTP 客户端（不设置总请求超时）
+	// Create HTTP client (no total request timeout)
 	client := &http.Client{
 		Transport: transport,
 		Timeout:   0,
@@ -671,26 +671,26 @@ func (r *request) HttpPostWithRetry(requestURL string, body io.Reader, timeout t
 	var resp *http.Response
 	var err error
 
-	// 重试机制
+	// Retry mechanism
 	for attempt := 1; attempt <= maxRetries; attempt++ {
-		// 注意：body 不能重复读取，所以如果需要重试，应在外部传入支持重复读取的 reader（如 bytes.Buffer）
+		// Note: body cannot be read twice, so for retries pass a reader that supports rereading (such as bytes.Buffer)
 		req, reqErr := http.NewRequest("POST", requestURL, body)
 		if reqErr != nil {
 			return nil, reqErr
 		}
 
-		// 设置请求头
+		// Set request headers
 		for k, v := range headers {
 			req.Header.Set(k, v)
 		}
 
-		// 发起请求
+		// Send request
 		resp, err = client.Do(req)
 		if err == nil {
 			return resp, nil
 		}
 
-		// 请求失败，记录日志并重试
+		// Request failed, log and retry
 		logger.SlogWarnLocal(fmt.Sprintf("[%v] POST attempt %d failed: %v", requestURL, attempt, err))
 		if attempt < maxRetries {
 			logger.SlogWarnLocal(fmt.Sprintf("Retrying POST %v after %v...", requestURL, retryInterval))

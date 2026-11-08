@@ -79,16 +79,16 @@ func (r *Result) CompareAssetOther(old, new types.AssetOther) types.AssetChangeL
 }
 
 func compareTechnologies(tech1, tech2 []string) (changes string) {
-	// 用来存储检查过的技术
+	// Used to store checked technologies
 	checked := make([]bool, len(tech1))
 	change := ""
-	// 查找增加
+	// Find increased
 	for _, tech2Item := range tech2 {
 		found := false
 		for i, tech1Item := range tech1 {
 			if strings.EqualFold(tech1Item, tech2Item) {
 				found = true
-				checked[i] = true // 标记为已检查
+				checked[i] = true // Mark as checked
 				break
 			}
 		}
@@ -97,9 +97,9 @@ func compareTechnologies(tech1, tech2 []string) (changes string) {
 		}
 	}
 
-	// 查找减少
+	// Find decreased
 	for i, tech1Item := range tech1 {
-		if !checked[i] { // 只有未检查的才是减少的
+		if !checked[i] { // Only unchecked ones are decreased
 			change += "-" + tech1Item + "\n"
 		}
 	}

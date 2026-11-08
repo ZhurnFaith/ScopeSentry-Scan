@@ -19,15 +19,15 @@ func GetSemaphore(tp string, limit int64) *semaphore.Weighted {
 	Mutex.Lock()
 	defer Mutex.Unlock()
 
-	// 如果字典中已有该 tp 的信号量，直接返回
+	// If the map already has a semaphore for this tp, return it
 	if sem, exists := SemaphoreDict[tp]; exists {
 		return sem
 	}
 
-	// 否则创建一个新的信号量
+	// Otherwise create a new semaphore
 	sem := semaphore.NewWeighted(limit)
 
-	// 将新创建的信号量加入字典
+	// Add the newly created semaphore to the map
 	SemaphoreDict[tp] = sem
 	return sem
 }

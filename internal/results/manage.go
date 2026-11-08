@@ -24,14 +24,14 @@ type ResultQueue struct {
 var ResultQueues = make(map[string]*ResultQueue)
 
 func InitializeResultQueue() {
-	// 模块列表
+	// Module list
 	modules := []string{
 		"SubdomainScan", "SubdomainSecurity",
 		"AssetChangeLog", "URLScan",
 		"WebCrawler", "VulnerabilityScan",
 		"SensitiveResult", "DirScan", "PageMonitoring", "PageMonitoringBody", "SensitiveBody", "RootDomain", "APP", "MP",
 	}
-	// 初始化模块队列和 Goroutine
+	// Initialize module queues and Goroutine
 	for _, module := range modules {
 		if module == "PageMonitoringUrl" {
 			ResultQueues[module] = &ResultQueue{
@@ -63,11 +63,11 @@ func InitializeResultQueue() {
 		go processQueue(module, ResultQueues[module])
 	}
 
-	// 初始化去重模块
+	// Initialize deduplication module
 	InitializeDuplicate()
-	// 初始化结果处理模块
+	// Initialize result handling module
 	InitializeHandler()
-	// 初始化结果插入模块
+	// Initialize result insertion module
 	InitializeResults()
 }
 
@@ -94,7 +94,7 @@ func processQueue(module string, mq *ResultQueue) {
 				flushBuffer(module, &buffer)
 			}
 		case <-mq.CloseCh:
-			// 处理关闭信号
+			// Handle shutdown signal
 			if len(buffer) > 0 {
 				flushBuffer(module, &buffer)
 			}
@@ -146,7 +146,7 @@ func flushBuffer(module string, buffer *[]interface{}) {
 
 func Close() {
 	for _, mq := range ResultQueues {
-		close(mq.Queue)   // 关闭队列
-		close(mq.CloseCh) // 发送关闭信号
+		close(mq.Queue)   // Close queue
+		close(mq.CloseCh) // Send shutdown signal
 	}
 }

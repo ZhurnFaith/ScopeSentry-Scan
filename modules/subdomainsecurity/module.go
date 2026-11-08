@@ -36,12 +36,12 @@ func NewRunner(op *options.TaskOptions, nextModule interfaces.ModuleRunner) *Run
 	}
 }
 
-// ModuleRun 子域名安全检测，如：子域名接管
+// ModuleRun subdomain security checks, e.g. subdomain takeover
 func (r *Runner) ModuleRun() error {
 	var allPluginWg sync.WaitGroup
 	var resultWg sync.WaitGroup
 	var nextModuleRun sync.WaitGroup
-	// 创建一个共享的 result 通道
+	// Create a shared result channel
 	resultChan := make(chan interface{}, 1000)
 	go func() {
 		nextModuleRun.Add(1)
@@ -51,27 +51,27 @@ func (r *Runner) ModuleRun() error {
 			logger.SlogError(fmt.Sprintf("Next module run error: %v", err))
 		}
 	}()
-	// 结果处理 goroutine，异步读取插件的结果
+	// Result handling goroutine, reads plugin results asynchronously
 	resultWg.Add(1)
 	go func() {
 		defer resultWg.Done()
 		for {
-			// 结果只有两种可能，一种是types.SubTakeResult 子域名接管结果，一种是types.DomainResolve域名解析结果
+			// There are only two kinds of results: types.SubTakeResult (subdomain takeover) and types.DomainResolve (domain resolution)
 			select {
 			case result, ok := <-resultChan:
 				if !ok {
-					// 如果 resultChan 关闭了，退出循环
-					// 此模块运行完毕，关闭下个模块的输入
+					// If resultChan is closed, exit the loop
+					// This module is done, close the next module's input
 					r.NextModule.CloseInput()
 					return
 				}
 				if subdomainTakeoverResult, ok := result.(types.SubTakeResult); ok {
-					// 子域名接管检测结果，无需发送到下个模块
+					// Subdomain takeover results, no need to send to the next module
 					subdomainTakeoverResult.TaskName = r.Option.TaskName
 					go results.Handler.SubdomainTakeover(&subdomainTakeoverResult)
 					logger.SlogInfoLocal(fmt.Sprintf("Find subdomain takeover: %v - %v", subdomainTakeoverResult.Input, subdomainTakeoverResult.Value))
 				} else {
-					// DomainResolve直接发送到下个模块
+					// DomainResolve send directly to the next module
 					r.NextModule.GetInput() <- result
 				}
 			}
@@ -84,7 +84,7 @@ func (r *Runner) ModuleRun() error {
 	var end time.Time
 	doneCalled := false
 	for {
-		// 输入为DNS信息
+		// Input is DNS info
 		select {
 		case <-contextmanager.GlobalContextManagers.GetContext(r.Option.ID).Done():
 			allPluginWg.Wait()
@@ -92,16 +92,16 @@ func (r *Runner) ModuleRun() error {
 				close(resultChan)
 				resultWg.Wait()
 				r.Option.ModuleRunWg.Done()
-				doneCalled = true // 标记已调用 Done
+				doneCalled = true // Mark as called Done
 			}
 			nextModuleRun.Wait()
 			return nil
 		case data, ok := <-r.Input:
 			if !ok {
 				time.Sleep(3 * time.Second)
-				logger.SlogDebugLocal(fmt.Sprintf("%v关闭: input开始关闭", r.GetName()))
+				logger.SlogDebugLocal(fmt.Sprintf("%v shutdown: input begins closing", r.GetName()))
 				allPluginWg.Wait()
-				// 通道已关闭，结束处理
+				// Channel closed, end processing
 				if firstData {
 					end = time.Now()
 					duration := end.Sub(start)
@@ -111,7 +111,7 @@ func (r *Runner) ModuleRun() error {
 					close(resultChan)
 					resultWg.Wait()
 					r.Option.ModuleRunWg.Done()
-					doneCalled = true // 标记已调用 Done
+					doneCalled = true // Mark as called Done
 				}
 				logger.SlogInfoLocal(fmt.Sprintf("module %v target %v close resultChan", r.GetName(), r.Option.Target))
 				nextModuleRun.Wait()
@@ -122,7 +122,7 @@ func (r *Runner) ModuleRun() error {
 				r.NextModule.GetInput() <- data
 				continue
 			}
-			// 转换为DomainResolve发送到下个模块
+			// Convert to DomainResolve and send to the next module
 			tmp := types.DomainResolve{
 				Domain: subdomain.Host,
 				IP:     subdomain.IP,
@@ -137,10 +137,10 @@ func (r *Runner) ModuleRun() error {
 			allPluginWg.Add(1)
 			go func(data interface{}) {
 				defer allPluginWg.Done()
-				// 如果开启了子域名安全检查扫描
+				// If subdomain security scan is enabled
 				if len(r.Option.SubdomainSecurity) != 0 {
 					skipPluginFlag := true
-					// 调用插件
+					// Call plugin
 					for _, pluginId := range r.Option.SubdomainSecurity {
 						//var plgWg sync.WaitGroup
 						var plgWg sync.WaitGroup
@@ -178,9 +178,9 @@ func (r *Runner) ModuleRun() error {
 							plgWg.Wait()
 							logger.SlogDebugLocal(fmt.Sprintf("%v plugin end execute: %v", plg.GetName(), data))
 						} else {
-							// 插件没有找到跳过此插件
+							// Plugin not found, skipping this plugin
 							logger.SlogError(fmt.Sprintf("plugin %v not found", pluginId))
-							// 在多个插件都没有找到的情况下只发送一次
+							// Send only once when none of the plugins found it
 							if skipPluginFlag {
 								resultChan <- data
 								skipPluginFlag = false
@@ -188,8 +188,8 @@ func (r *Runner) ModuleRun() error {
 						}
 					}
 				} else {
-					// 没有开启子域名安全检查扫描，将数据转换一下发送到结果
-					// 前边已经发送了
+					// Subdomain security scan not enabled, convert the data and send it to results
+					// Already sent earlier
 					//subdomain, ok = data.(types.SubdomainResult)
 					//if ok {
 					//	tmp := types.DomainResolve{

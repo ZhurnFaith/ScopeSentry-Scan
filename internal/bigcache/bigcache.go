@@ -13,20 +13,20 @@ import (
 	"time"
 )
 
-// BigCacheWrapper 封装 BigCache 的实现
+// BigCacheWrapper BigCache wrapper implementation
 type BigCacheWrapper struct {
 	cache *bigcache.BigCache
 }
 
 var BigCache *BigCacheWrapper
 
-// NewBigCacheWrapper 创建一个 BigCache 实例
+// NewBigCacheWrapper create a BigCache instance
 func Initialize() error {
 	config := bigcache.Config{
-		LifeWindow:       10 * 365 * 24 * time.Hour, // 缓存生命周期长
+		LifeWindow:       10 * 365 * 24 * time.Hour, // Long cache lifetime
 		Shards:           1024,
-		MaxEntrySize:     500, // 每个缓存项最大大小
-		HardMaxCacheSize: 100, // 最大缓存大小 100 MB
+		MaxEntrySize:     500, // Max size per cache entry
+		HardMaxCacheSize: 100, // Max cache size 100 MB
 		Verbose:          true,
 		CleanWindow:      5 * time.Minute,
 	}
@@ -38,17 +38,17 @@ func Initialize() error {
 	return nil
 }
 
-// Set 将数据存储到缓存
+// Set store data in cache
 func (b *BigCacheWrapper) Set(key string, value []byte) error {
 	return b.cache.Set(key, value)
 }
 
-// Get 从缓存中获取数据
+// Get get data from cache
 func (b *BigCacheWrapper) Get(key string) ([]byte, error) {
 	return b.cache.Get(key)
 }
 
-// Delete 从缓存中删除数据
+// Delete delete data from cache
 func (b *BigCacheWrapper) Delete(key string) error {
 	return b.cache.Delete(key)
 }

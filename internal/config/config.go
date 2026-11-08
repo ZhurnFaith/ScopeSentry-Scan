@@ -19,18 +19,18 @@ import (
 	"sync"
 )
 
-// LoadConfig 读取配置文件并解析
+// LoadConfig read and parse configuration file
 func LoadConfig() error {
-	// 尝试打开配置文件
+	// Try to open configuration file
 	if _, err := os.Stat(global.ConfigPath); err == nil {
 		global.FirstRun = false
-		// 配置文件存在，从文件读取
+		// Configuration file exists, read from file
 		if err := utils.Tools.ReadYAMLFile(global.ConfigPath, &global.AppConfig); err != nil {
 			return err
 		}
 	} else {
 		global.FirstRun = true
-		// 配置文件不存在，从环境变量读取
+		// Configuration file does not exist, read from environment variables
 		global.AppConfig = global.Config{
 			NodeName:     getEnv("NodeName", ""),
 			TimeZoneName: getEnv("TimeZoneName", "Asia/Shanghai"),
@@ -63,7 +63,7 @@ func LoadConfig() error {
 			global.AppConfig.NodeName = hostname + "-" + utils.Tools.GenerateRandomString(6)
 		}
 		global.AppConfig.State = 1
-		// 创建配置文件
+		// Create configuration file
 		if err := createConfigFile(global.ConfigPath, global.AppConfig); err != nil {
 			return err
 		}
@@ -75,7 +75,7 @@ func LoadConfig() error {
 	return nil
 }
 
-// getEnv 从环境变量中读取配置值，如果环境变量未设置，则返回默认值
+// getEnv read the configuration value from an environment variable, return the default if unset
 func getEnv(key, defaultValue string) string {
 	if value, exists := os.LookupEnv(key); exists {
 		return value
@@ -140,10 +140,10 @@ func Initialize() {
 		log.Fatalf("Error loading configuration: %v", err)
 	}
 
-	// 初始化子域名接管规则
+	// Initialize subdomain takeover rules
 	err = json.Unmarshal(global.TakeoverFinger, &global.SubdomainTakerFingers)
 	if err != nil {
-		log.Fatalf("子域名接管规则初始化失败: %v", err)
+		log.Fatalf("Failed to initialize subdomain takeover rules: %v", err)
 	}
 	InitFilterUrlRe()
 	global.CustomMapParameter = sync.Map{}

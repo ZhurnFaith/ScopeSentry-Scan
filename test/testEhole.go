@@ -33,49 +33,49 @@ import (
 )
 
 func main() {
-	// 初始化系统信息
+	// Initialize system info
 	config.Initialize()
 	var err error
-	// 初始化mongodb连接
+	// Initialize mongodb connection
 	mongodb.Initialize()
-	// 初始化redis连接
+	// Initialize redis connection
 	redis.Initialize()
-	// 初始化日志模块
+	// Initialize log module
 	err = logger.NewLogger()
 	if err != nil {
 		log.Fatalf("Failed to init logger: %v", err)
 	}
-	// 初始化任务计数器
+	// Initialize task counter
 	handler.InitHandle()
-	// 更新配置、加载字典
+	// Update configuration, load dictionaries
 	configupdater.Initialize()
-	// 初始化模块配置
+	// Initialize module configuration
 	err = config.ModulesInitialize()
 	if err != nil {
 		log.Fatalf("Failed to init ModulesConfig: %v", err)
 		return
 	}
-	// 初始化上下文管理器
+	// Initialize context manager
 	contextmanager.NewContextManager()
-	// 初始化tools
+	// Initialize tools
 	utils.InitializeTools()
 	utils.InitializeDnsTools()
 	utils.InitializeRequests()
 	utils.InitializeResults()
-	// 初始化通知模块
+	// Initialize notification module
 	notification.InitializeNotification()
-	// 初始化协程池
+	// Initialize goroutine pool
 	pool.Initialize()
-	// 初始化个模块的协程池
+	// Initialize goroutine pools for each module
 	pool.PoolManage.InitializeModulesPools(config.ModulesConfig)
 	go pool.StartMonitoring()
-	// 初始化内存缓存
+	// Initialize memory cache
 	err = bigcache.Initialize()
 	if err != nil {
 		logger.SlogErrorLocal(fmt.Sprintf("bigcache Initialize error: %v", err))
 		return
 	}
-	// 初始化本地持久化缓存
+	// Initialize local persistent cache
 	pebbledbSetting := pebbledb.Settings{
 		DBPath:       filepath.Join(global.AbsolutePath, "data", "pebbledb"),
 		CacheSize:    64 << 20,
@@ -94,11 +94,11 @@ func main() {
 		_ = PebbleStore.Close()
 	}(pebbledb.PebbleStore)
 
-	// 初始化结果处理队列，(正常的时候将该初始化放入任务开始时，任务执行完毕关闭结果队列)
+	// Initialize the result handling queue (normally this is done at task start and the queue is closed when the task finishes)
 	results.InitializeResultQueue()
 	defer results.Close()
 
-	// 初始化全局插件管理器
+	// Initialize global plugin manager
 	plugins.GlobalPluginManager = plugins.NewPluginManager()
 	err = plugins.GlobalPluginManager.InitializePlugins()
 	if err != nil {
@@ -106,19 +106,19 @@ func main() {
 		return
 	}
 	var assetsList []types.AssetHttp
-	// 打开文件
+	// Open file
 	file, err := os.Open("ScopeSentry.asset.json")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
 
-	// 读取文件内容
+	// Read file content
 	byteValue, err := ioutil.ReadAll(file)
 	if err != nil {
 		log.Fatal(err)
 	}
-	// 将 JSON 数据解析到结构体
+	// Parse JSON data into struct
 	err = json.Unmarshal(byteValue, &assetsList)
 	if err != nil {
 		log.Fatal(err)

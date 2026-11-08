@@ -35,7 +35,7 @@ func InitializeDuplicate() {
 	Duplicate = &duplicate{}
 }
 
-// SubdomainInTask 本地缓存taskid:subdomain 是否存在，不存在则存入本地缓存，从redis查询是否重复，如果开启了子域名去重，则查询mongdob中是否存在子域名。
+// SubdomainInTask check whether taskid:subdomain is in the local cache; if not, store it, check redis for duplicates, and if subdomain deduplication is enabled, check whether the subdomain exists in mongodb.
 func (d *duplicate) SubdomainInTask(taskId string, host string, isRestart bool) bool {
 	key := "duplicates:" + taskId + ":subdomain:" + host
 	flag := d.DuplicateLocalCache(key)
@@ -49,7 +49,7 @@ func (d *duplicate) SubdomainInTask(taskId string, host string, isRestart bool) 
 			return flag
 		}
 	}
-	// 本地缓存中存在，返回false
+	// Exists in local cache, return false
 	return false
 }
 
@@ -58,14 +58,14 @@ func (d *duplicate) SubdomainInMongoDb(result *types.SubdomainResult) bool {
 	err := mongodb.MongodbClient.FindOne("subdomain", bson.M{"host": result.Host}, bson.M{"_id": 1}, &resultDoc)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			// 从mongodb中没有查到子域名，返回true表示开始该子域名的扫描
+			// Subdomain not found in mongodb, return true to start scanning it
 			return true
 		}
-		// mongodb查询错误，忽略该错误直接开始扫描该域名
+		// mongodb query error, ignore it and start scanning the domain
 		logger.SlogErrorLocal(fmt.Sprintf("SubdomainInMongoDb error :%s\n", err))
 		return true
 	}
-	// 从mongodb中找到了该域名，进行去重，返回false，不进行该子域名的扫描
+	// Found the domain in mongodb, deduplicate and return false so the subdomain is not scanned
 	return false
 }
 
@@ -76,7 +76,7 @@ func (d *duplicate) PortIntask(taskId string, host string, port string, isRestar
 		return flag
 	}
 	if flag {
-		// 本地缓存中不存在，从redis中查找
+		// Not in local cache, look it up in redis
 		keyRedis := "duplicates:" + taskId + ":port"
 		valueRedis := host + "-" + port
 		flag = d.DuplicateRedisCache(keyRedis, valueRedis)
@@ -85,39 +85,39 @@ func (d *duplicate) PortIntask(taskId string, host string, port string, isRestar
 	return false
 }
 
-// 返回true 表示 内存中不存在  返回false 表示存在 重复
+// True means not in memory; false means it exists (duplicate)
 func (d *duplicate) DuplicateLocalCache(key string) bool {
 	_, err := bigcache.BigCache.Get(key)
 	if err != nil {
-		// bigcache中不存在，设置缓存
+		// bigcache does not exist, set cache
 		err := bigcache.BigCache.Set(key, []byte{})
 		if err != nil {
 			logger.SlogError(fmt.Sprintf("Set BigCache error: %v - %v", key, err))
 		}
 		return true
 	}
-	// 本地缓存中存在，则重复
+	// Exists in local cache, so it is a duplicate
 	return false
 }
 
-// DuplicateRedisCache 在key中查找是否存在value来进行去重，返回true 表示不存在 不重复 返回false 表示已经存在了 重复
+// DuplicateRedisCache deduplicate by checking whether value exists under key; true means not present (not a duplicate), false means it already exists (duplicate)
 func (d *duplicate) DuplicateRedisCache(key string, value string) bool {
 	ctx := context.Background()
 	exists, err := redis.RedisClient.SIsMember(ctx, key, value)
 	if err != nil {
 		logger.SlogError(fmt.Sprintf("PortIntask Deduplication error %v", err))
-		// 如果查询redis出错 直接认为不存在重复的
+		// If querying redis fails, assume there are no duplicates
 		return true
 	}
 	if exists {
-		// 如果redis中已经存在了，表示其他节点或该节点之前已经在扫描该端口了，返回false跳过此域名
+		// If it already exists in redis, this or another node is already scanning this port, return false to skip the domain
 		return false
 	} else {
 		_, err = redis.RedisClient.SAdd(ctx, key, value)
 		if err != nil {
 			logger.SlogError(fmt.Sprintf("PortIntask Deduplication sadd error %v", err))
 		}
-		// 子域名在redis中不存在，表示该域名-端口还没有进行扫描，返回true开始扫描
+		// The subdomain is not in redis, meaning this domain-port has not been scanned, return true to start scanning
 		return true
 	}
 }
@@ -127,20 +127,20 @@ func (d *duplicate) AssetInMongodb(host string, port string) (bool, string, bson
 	err := mongodb.MongodbClient.FindOne("asset", bson.M{"host": host, "port": port}, nil, &result)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			// 说明在mongodb中不存在
+			// Means it does not exist in mongodb
 			return false, "", nil
 		}
-		// 其他错误也认为在mongodb中不存在
+		// Other errors are also treated as not existing in mongodb
 		logger.SlogErrorLocal(fmt.Sprintf("AssetInMongodb error :%s\n", err))
 		return false, "", nil
 	} else {
-		// 获取并删除 _id 字段，转换为字符串
+		// Get and remove the _id field, convert to string
 		var id string
 		if objId, ok := result["_id"].(primitive.ObjectID); ok {
-			id = objId.Hex()      // 将 ObjectID 转为字符串
-			delete(result, "_id") // 从 result 中删除 _id 字段
+			id = objId.Hex()      // Convert ObjectID to string
+			delete(result, "_id") // Remove the _id field from result
 		}
-		// 在mongodb中找到了这个资产记录
+		// Found this asset record in mongodb
 		return true, id, result
 	}
 }
@@ -230,7 +230,7 @@ func (d *duplicate) UrlDuplicate(urlRaw string) (bool, []string, string) {
 	key := "ssrf:" + utils.Tools.HashXX64String(parsedURL.Scheme+parsedURL.Host+newPath+sb)
 	flag := d.DuplicateLocalCache(key)
 	if flag {
-		// 不重复
+		// Unique
 		return flag, keys, parsedURL.Scheme + "://" + parsedURL.Host + parsedURL.Path
 	}
 	return false, []string{}, ""

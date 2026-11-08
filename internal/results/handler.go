@@ -37,13 +37,13 @@ func (h *handler) GetAssetProject(host string) string {
 	for _, p := range global.Projects {
 		for _, t := range p.Target {
 			if host == t {
-				// 判断是否为黑名单
+				// Check whether blacklisted
 				for _, igTarget := range p.IgnoreList {
 					if host == igTarget {
 						return ""
 					}
 				}
-				// 正则判断是否为黑名单
+				// Regex check for blacklist
 				for _, igRegex := range p.IgnoreRegexList {
 					if igRegex.MatchString(host) {
 						return ""
@@ -107,12 +107,12 @@ func (h *handler) HttpBody(hash string, body string) {
 	}
 	_, err := mongodb.MongodbClient.InsertOne("HttpBody", doc)
 	if err != nil {
-		// 如果是唯一索引冲突就忽略
+		// Ignore if it is a unique index conflict
 		if mongo.IsDuplicateKeyError(err) {
 			//logger.SlogDebugLocal(fmt.Sprintf("HttpBody: body hash  %s already exists", hash))
 			return
 		}
-		// 其他错误则记录
+		// Log other errors
 		logger.SlogError(fmt.Sprintf("HttpIcon insert error: %v", err))
 	}
 
@@ -129,12 +129,12 @@ func (h *handler) HttpIcon(faviconmmh3 string, icon string) {
 
 	_, err := mongodb.MongodbClient.InsertOne("icon", doc)
 	if err != nil {
-		// 如果是唯一索引冲突就忽略
+		// Ignore if it is a unique index conflict
 		if mongo.IsDuplicateKeyError(err) {
 			//logger.SlogDebugLocal(fmt.Sprintf("HttpIcon: faviconmmh3 %s already exists", faviconmmh3))
 			return
 		}
-		// 其他错误则记录
+		// Log other errors
 		logger.SlogError(fmt.Sprintf("HttpIcon insert error: %v", err))
 	}
 }
@@ -149,28 +149,28 @@ func (h *handler) HttpScreenshot(hash string, screenshot string) {
 	}
 	_, err := mongodb.MongodbClient.InsertOne("screenshot", doc)
 	if err != nil {
-		// 如果是唯一索引冲突就忽略
+		// Ignore if it is a unique index conflict
 		if mongo.IsDuplicateKeyError(err) {
 			//logger.SlogDebugLocal(fmt.Sprintf("HttpBody: body hash  %s already exists", hash))
 			return
 		}
-		// 其他错误则记录
+		// Log other errors
 		logger.SlogError(fmt.Sprintf("HttpScreenshot insert error: %v", err))
 	}
 }
 
 func (h *handler) AssetUpdate(id string, updateData interface{}) {
-	// 资产比较少，并且需要实时获取历史记录，所以不采用多条插入的方式
-	objectID, err := primitive.ObjectIDFromHex(id) // 将字符串 ID 转换为 ObjectID
+	// Assets are few and history must be fetched in real time, so bulk insert is not used
+	objectID, err := primitive.ObjectIDFromHex(id) // Convert string ID to ObjectID
 	if err != nil {
 		logger.SlogError(fmt.Sprintf("AssetUpdate %v ObjectIDFromHex error:%v", id, err))
 		return
 	}
-	selector := bson.M{"_id": objectID} // 创建选择器，匹配指定的 ObjectID
+	selector := bson.M{"_id": objectID} // Create selector matching the specified ObjectID
 	_, err = mongodb.MongodbClient.Update("asset", selector, bson.M{"$set": updateData})
 	if err != nil {
 		logger.SlogError(fmt.Sprintf("AssetUpdate %v error:%v", id, err))
-	} // 使用 $set 更新字段
+	} // Update fields with $set
 	go func() {
 		if asset, ok := updateData.(types.AssetHttp); ok {
 			ipAssetTmpDoc := types.IPAssetTmp{
@@ -194,7 +194,7 @@ func (h *handler) AssetUpdate(id string, updateData interface{}) {
 }
 
 func (h *handler) AssetOtherInsert(result *types.AssetOther) {
-	// 资产比较少，并且需要实时获取历史记录，所以不采用多条插入的方式
+	// Assets are few and history must be fetched in real time, so bulk insert is not used
 	var interfaceSlice interface{}
 	rootDomain, err := utils.Tools.GetRootDomain(result.Host)
 	if err != nil {
@@ -228,7 +228,7 @@ func (h *handler) AssetOtherInsert(result *types.AssetOther) {
 		if errors.As(err, &we) {
 			for _, e := range we.WriteErrors {
 				if e.Code == 11000 {
-					// 重复键错误，不打印日志
+					// Duplicate key error, do not log
 					return
 				}
 			}
@@ -239,7 +239,7 @@ func (h *handler) AssetOtherInsert(result *types.AssetOther) {
 }
 
 func (h *handler) AssetHttpInsert(result *types.AssetHttp) {
-	// 资产比较少，并且需要实时获取历史记录，所以不采用多条插入的方式
+	// Assets are few and history must be fetched in real time, so bulk insert is not used
 	var interfaceSlice interface{}
 	rootDomain, err := utils.Tools.GetRootDomain(result.Host)
 	if err != nil {
@@ -275,12 +275,12 @@ func (h *handler) AssetHttpInsert(result *types.AssetHttp) {
 		if errors.As(err, &we) {
 			for _, e := range we.WriteErrors {
 				if e.Code == 11000 {
-					// 重复键错误，不打印日志
+					// Duplicate key error, do not log
 					return
 				}
 			}
 		}
-		// 其他错误正常打印
+		// Print other errors normally
 		logger.SlogError(fmt.Sprintf("AssetHttpInsert error: %v", err))
 		return
 	}
@@ -300,8 +300,8 @@ func (h *handler) URL(result *types.UrlResult) {
 	if result.Time == "" {
 		result.Time = utils.Tools.GetTimeNow()
 	}
-	// 创建result的副本，并将Body设置为空
-	// 创建一个新的result对象，但Body设为空
+	// Create a copy of result and set Body to empty
+	// Create a new result object with an empty Body
 	resultCopy := types.UrlResult{
 		Input:      result.Input,
 		Source:     result.Source,
@@ -314,7 +314,7 @@ func (h *handler) URL(result *types.UrlResult) {
 		TaskName:   result.TaskName,
 		ResultId:   result.ResultId,
 		RootDomain: result.RootDomain,
-		Body:       "", // 设置Body为空
+		Body:       "", // Set Body to empty
 		Tags:       result.Tags,
 		Ext:        result.Ext,
 	}
@@ -395,7 +395,7 @@ func (h *handler) SensitiveUrl(url string, urlId string, bodyId string) {
 				"bodyId": bodyId,
 			},
 		}
-		// 调用 Upsert 方法，执行插入或更新操作
+		// Call the Upsert method to insert or update
 		_, err := mongodb.MongodbClient.Upsert(collectionName, selector, update)
 		if err != nil {
 			logger.SlogError(fmt.Sprintf("SensitiveUrl insert mongodb error:%v", err))
@@ -499,16 +499,16 @@ func (h *handler) RootDomain(result *types.RootDomain) {
 		"company":  result.Company,
 	}
 	if err != nil {
-		// 出现错误表示 mongodb中不存在， 不存在则不进行处理 直接更新插入
-		// 通知新增根域名
+		// An error means it does not exist in mongodb; if so, just upsert
+		// Notify new root domain
 		if global.NotificationConfig.NewAsset {
 			tmp := fmt.Sprintf("Found a new root domain name: %v - %v - %v - %v", result.Domain, result.ICP, result.Company, result.Project)
 			notification.NotificationQueues["NewAssets"].Queue <- tmp
 		}
 	} else {
-		// mongodb中存在
-		// 查询mongodb中是否存在该domain 如果存在 则判断icp、company、project是否一样 如果一样就不需要更新
-		// 如果不一样需要更新，并且不一样的时候新的icp、company、project需要不为空
+		// mongodb exists in
+		// Check whether the domain exists in mongodb; if so, compare icp, company and project, and skip the update if they match
+		// If different, update is needed, and the new icp, company and project must not be empty
 		if result.ICP == resultEx.ICP && result.Company == resultEx.Company && result.Project == resultEx.Project && utils.Tools.EqualStringSlices(result.Tags, resultEx.Tags) && resultEx.TaskName == result.TaskName {
 			return
 		}
@@ -569,8 +569,8 @@ func (h *handler) APP(result *types.APP) {
 		err = mongodb.MongodbClient.FindOne("app", bson.M{"bundleID": result.BundleID}, nil, &resultEx)
 	}
 	if err != nil {
-		// 出现错误表示 mongodb中不存在， 不存在则不进行处理 直接更新插入
-		// 通知新增根域名
+		// An error means it does not exist in mongodb; if so, just upsert
+		// Notify new root domain
 		if global.NotificationConfig.NewAsset {
 			tmp := fmt.Sprintf("Found a new app name: %v - %v - %v - %v", result.Name, result.ICP, result.Company, result.Project)
 			notification.NotificationQueues["NewAssets"].Queue <- tmp
@@ -658,8 +658,8 @@ func (h *handler) MP(result *types.MP) {
 	}
 	err := mongodb.MongodbClient.FindOne("mp", bson.M{"name": result.Name}, nil, &resultEx)
 	if err != nil {
-		// 出现错误表示 mongodb中不存在， 不存在则不进行处理 直接更新插入
-		// 通知新增根域名
+		// An error means it does not exist in mongodb; if so, just upsert
+		// Notify new root domain
 		if global.NotificationConfig.NewAsset {
 			tmp := fmt.Sprintf("Found a new mp name: %v - %v - %v - %v", result.Name, result.ICP, result.Company, result.Project)
 			notification.NotificationQueues["NewAssets"].Queue <- tmp
@@ -710,7 +710,7 @@ func (h *handler) AddParam(domain string, values []interface{}) (int64, error) {
 		return 0, nil
 	}
 
-	// SAdd 批量添加
+	// SAdd batch add
 	addedCount, err := redis.RedisClient.SAdd(context.Background(), fmt.Sprintf("param:%v", domain), values...)
 	if err != nil {
 		return 0, err
@@ -720,7 +720,7 @@ func (h *handler) AddParam(domain string, values []interface{}) (int64, error) {
 }
 
 func (h *handler) GetParams(domain string) ([]string, error) {
-	// 使用 Redis 的 SMembers 命令获取 Set 中的所有成员
+	// Get all members of the Set with the Redis SMembers command
 	values, err := redis.RedisClient.SMembers(context.Background(), fmt.Sprintf("param:%v", domain))
 	if err != nil {
 		return nil, err

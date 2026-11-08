@@ -17,7 +17,7 @@ import (
 
 func WaybackarchiveRun(rootUrl string, result chan Result, ctx context.Context) int {
 	client := &http.Client{
-		Timeout: 10 * time.Second, // 设置超时时间
+		Timeout: 10 * time.Second, // Set timeout
 	}
 	res, err := client.Get(
 		fmt.Sprintf("https://web.archive.org/cdx/search/cdx?url=*.%s/*&output=text&collapse=urlkey&fl=original", rootUrl),

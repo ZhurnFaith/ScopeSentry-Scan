@@ -22,18 +22,18 @@ import (
 	"time"
 )
 
-// HttpClientConfig 提供 http.Client 配置选项
+// HttpClientConfig provide http.Client configuration options
 type HttpClientConfig struct {
 	Timeout             time.Duration
 	MaxIdleConns        int
 	MaxIdleConnsPerHost int
 	IdleConnTimeout     time.Duration
-	TLSClientConfig     *tls.Config // 可自定义 TLS 配置（包括跳过验证、自定义 CA 等）
+	TLSClientConfig     *tls.Config // TLS configuration can be customized (skip verification, custom CA, etc.)
 	ProxyURL            string
 	FollowRedirect      bool
 }
 
-// GetHttpClient 返回一个配置好的 http.Client
+// GetHttpClient return a configured http.Client
 func GetHttpClient(cfg HttpClientConfig) *http.Client {
 	var proxyFunc func(*http.Request) (*url.URL, error)
 
@@ -59,7 +59,7 @@ func GetHttpClient(cfg HttpClientConfig) *http.Client {
 		Transport: transport,
 	}
 
-	// ✅ 如果不跟随跳转，设置 CheckRedirect
+	// ✅ if not following redirects, set CheckRedirect
 	if !cfg.FollowRedirect {
 		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
@@ -108,7 +108,7 @@ func getConfigKey(cfg HttpClientConfig) string {
 	)
 }
 
-// GetNetHttpByConfig 通过完整配置获取对应 Nethttp 实例，缓存复用
+// GetNetHttpByConfig get the Nethttp instance for the full configuration, cached for reuse
 func GetNetHttpByConfig(cfg HttpClientConfig) *Nethttp {
 	key := getConfigKey(cfg)
 
@@ -173,17 +173,17 @@ func (n *Nethttp) HttpPostNoResWithCustomHeader(url string, body []byte, content
 }
 
 func (n *Nethttp) HttpGetWithCustomHeader(uri string, customHeaders map[string]string) (types.HttpResponse, error) {
-	// 创建请求
+	// Create request
 	req, err := http.NewRequest(http.MethodGet, uri, nil)
 	if err != nil {
 		return types.HttpResponse{}, err
 	}
 
-	// 添加自定义 Header
+	// Add custom Header
 	for k, v := range customHeaders {
 		req.Header.Set(k, v)
 	}
-	// 发起请求
+	// Send request
 	resp, err := n.Client.Do(req)
 	if err != nil {
 		return types.HttpResponse{}, err
@@ -204,11 +204,11 @@ func (n *Nethttp) HttpGetWithCustomHeader(uri string, customHeaders map[string]s
 		}
 	}
 
-	// 限制最大响应体大小（10MB）
+	// Limit max response body size (10MB)
 	const maxBodySize = 10 * 1024 * 1024 // 10MB
 	limitedReader := io.LimitReader(reader, maxBodySize)
 
-	// 读取响应体
+	// Read response body
 	bodyBytes, err := io.ReadAll(limitedReader)
 	if err != nil {
 		logger.SlogErrorLocal(fmt.Sprintf("HttpGetWithCustomHeader func error: %v", err))
@@ -217,10 +217,10 @@ func (n *Nethttp) HttpGetWithCustomHeader(uri string, customHeaders map[string]s
 	tmp.Body = string(bodyBytes)
 	tmp.StatusCode = resp.StatusCode
 
-	// 获取重定向地址
+	// Get redirect URL
 	tmp.Redirect = resp.Header.Get("Location")
 
-	// 设置 Content-Length
+	// Settings Content-Length
 	if resp.ContentLength >= 0 {
 		tmp.ContentLength = int(resp.ContentLength)
 	} else {
@@ -230,18 +230,18 @@ func (n *Nethttp) HttpGetWithCustomHeader(uri string, customHeaders map[string]s
 }
 
 func (n *Nethttp) HttpPostWithCustomHeader(uri string, requestBody []byte, ct string, customHeaders map[string]string) (error, HttpResponse) {
-	// 创建 POST 请求
+	// Create POST request
 	req, err := http.NewRequest(http.MethodPost, uri, bytes.NewReader(requestBody))
 	if err != nil {
 		return err, HttpResponse{}
 	}
 
-	// 设置默认 Content-Type（仅当传入 ct == "json"）
+	// Set default Content-Type (only when passed ct == "json")
 	if ct == "json" {
 		req.Header.Set("Content-Type", "application/json")
 	}
 
-	// 设置自定义 Header
+	// Set custom Header
 	for k, v := range customHeaders {
 		req.Header.Set(k, v)
 	}
@@ -264,17 +264,17 @@ func (n *Nethttp) HttpPostWithCustomHeader(uri string, requestBody []byte, ct st
 		}
 	}
 
-	// 限制最大响应体大小（10MB）
+	// Limit max response body size (10MB)
 	const maxBodySize = 10 * 1024 * 1024 // 10MB
 	limitedReader := io.LimitReader(reader, maxBodySize)
 
-	// 读取响应体
+	// Read response body
 	bodyBytes, err := io.ReadAll(limitedReader)
 	if err != nil {
 		return err, HttpResponse{}
 	}
 
-	// 提取响应头
+	// Extract response headers
 	headers := make(map[string]string)
 	for key, values := range resp.Header {
 		headers[key] = strings.Join(values, ", ")

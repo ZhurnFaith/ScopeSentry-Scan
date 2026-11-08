@@ -110,7 +110,7 @@ func (p *Plugin) SetParameter(args string) {
 func (p *Plugin) Log(msg string, tp ...string) {
 	var logTp string
 	if len(tp) > 0 {
-		logTp = tp[0] // 使用传入的参数
+		logTp = tp[0] // Use the parameters passed in
 	} else {
 		logTp = "i"
 	}
@@ -128,7 +128,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 		return nil, errors.New("input is not types.AssetOther")
 	}
 	if asset.Service != "" {
-		// 如果service不为空，说明有其他插件检出，直接返回
+		// If service is not empty, another plugin detected it, return directly
 		return nil, nil
 	}
 	fxConfig := scan.Config{
@@ -154,7 +154,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 	ip, _ := netip.ParseAddr(asset.IP)
 	portUint64, err := strconv.ParseUint(asset.Port, 10, 16)
 	if err != nil {
-		logger.SlogError(fmt.Sprintf("%v 端口转换错误: %v ", p.GetName(), err))
+		logger.SlogError(fmt.Sprintf("%v port conversion error: %v ", p.GetName(), err))
 		return nil, err
 	}
 	target := plugins.Target{
@@ -188,18 +188,18 @@ func GetBanner(raw json.RawMessage) string {
 
 	m := map[string]json.RawMessage{}
 	if err := json.Unmarshal(raw, &m); err != nil {
-		// 原始内容不是 JSON → 直接返回
+		// Raw content is not JSON → return directly
 		return string(raw)
 	}
 
 	v, ok := m["banner"]
 	if !ok {
-		// 没有 banner 字段 → 返回原始数据
+		// No banner field → return raw data
 		return string(raw)
 	}
 
 	var banner string
-	// banner 不是字符串 → 返回原始数据
+	// banner not a string → return raw data
 	if err := json.Unmarshal(v, &banner); err != nil {
 		return string(raw)
 	}

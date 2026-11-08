@@ -44,7 +44,7 @@ type Plugin struct {
 
 func NewPlugin() *Plugin {
 	osType := runtime.GOOS
-	// 判断操作系统类型
+	// Check OS type
 	var path string
 	var dir string
 	switch osType {
@@ -86,7 +86,7 @@ func (p *Plugin) GetTaskId() string {
 func (p *Plugin) Log(msg string, tp ...string) {
 	var logTp string
 	if len(tp) > 0 {
-		logTp = tp[0] // 使用传入的参数
+		logTp = tp[0] // Use the parameters passed in
 	} else {
 		logTp = "i"
 	}
@@ -186,7 +186,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 	parameter := p.GetParameter()
 	PortBatchSize := "1500"
 	PortTimeout := "3000"
-	// 如果没有找到端口 默认扫描top1000
+	// If no port found, scan by default top1000
 	executionTimeout := 15
 	PortRange := ""
 	maxPort := 200
@@ -231,23 +231,23 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 		args = append(args, "--exclude-ports", excludePorts)
 	}
 	rustScanExecPath := filepath.Join(filepath.Join(global.ExtDir, "rustscan"), p.RustFileName)
-	// 假设你已经有获取 TaskID 的逻辑
+	// Assuming you already have logic to get the TaskID
 	taskContext := contextmanager.GlobalContextManagers.GetContext(p.GetTaskId())
 
-	// 为命令设置一个超时时间
-	timeout := time.Duration(executionTimeout) * time.Minute // 例如，设置为30分钟超时
+	// Set a timeout for the command
+	timeout := time.Duration(executionTimeout) * time.Minute // E.g., set a 30-minute timeout
 	ctx, cancel := context.WithTimeout(taskContext, timeout)
 	defer cancel()
 	logger.SlogInfoLocal(fmt.Sprintf("[Plugin %v]begin scan %v", p.GetName(), domainSkip.Domain))
 	cmd := exec.CommandContext(ctx, rustScanExecPath, args...)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		logger.SlogError(fmt.Sprintf("RustScan StdoutPipe error： %v", err))
+		logger.SlogError(fmt.Sprintf("RustScan StdoutPipe error: %v", err))
 		return nil, err
 	}
 	defer stdout.Close()
 	if err := cmd.Start(); err != nil {
-		logger.SlogWarnLocal(fmt.Sprintf("RustScan cmd.Start error： %v", err))
+		logger.SlogWarnLocal(fmt.Sprintf("RustScan cmd.Start error: %v", err))
 		return nil, err
 	}
 	portFlag := 0
@@ -273,49 +273,49 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 				if portFlag > maxPort {
 					p.Log(fmt.Sprintf("target %v open port number > max port: %v", domainSkip.Domain, portFlag), "w")
 					cancel()           // kill RustScan
-					cmd.Process.Kill() // 立即杀掉子进程，不等待
+					cmd.Process.Kill() // Kill child process immediately without waiting
 					end := time.Now()
 					duration := end.Sub(start)
 					p.Log(fmt.Sprintf("target %v running time:%v", domainSkip.Domain, duration))
-					return nil, nil // 立即退出整个 Execute()
+					return nil, nil // Immediately exit the whole Execute()
 				}
 			}
-			// 端口开放
+			// Port open
 			openIpPort := strings.SplitN(r, " ", 2)
-			// 检查是否是IPv6地址
+			// Check whether it is an IPv6 address
 			if match := ipv6Regex.FindStringSubmatch(openIpPort[1]); match != nil {
 				var result types.PortAlive
 				if domainSkip.CIDR {
 					result = types.PortAlive{
 						Host: match[1],
-						IP:   match[1], // IPv6地址
-						Port: match[2], // 端口
+						IP:   match[1], // IPv6 address
+						Port: match[2], // Port
 					}
 				} else {
 					result = types.PortAlive{
 						Host: domainSkip.Domain,
-						IP:   match[1], // IPv6地址
-						Port: match[2], // 端口
+						IP:   match[1], // IPv6 address
+						Port: match[2], // Port
 					}
 				}
 				logger.SlogInfoLocal(fmt.Sprintf("%v %v Port alive: %v", domainSkip.Domain, match[1], match[2]))
 				p.Result <- result
 				continue
 			} else {
-				// 处理IPv4地址的情况
+				// Handle IPv4 addresses
 				openPort := strings.SplitN(openIpPort[1], ":", 2)
 				var result types.PortAlive
 				if domainSkip.CIDR {
 					result = types.PortAlive{
 						Host: openPort[0],
-						IP:   openPort[0], // IPv4地址
-						Port: openPort[1], // 端口
+						IP:   openPort[0], // IPv4 address
+						Port: openPort[1], // Port
 					}
 				} else {
 					result = types.PortAlive{
 						Host: domainSkip.Domain,
-						IP:   openPort[0], // IPv4地址
-						Port: openPort[1], // 端口
+						IP:   openPort[0], // IPv4 address
+						Port: openPort[1], // Port
 					}
 				}
 				logger.SlogInfoLocal(fmt.Sprintf("%v %v Port alive: %v", domainSkip.Domain, openPort[0], openPort[1]))
@@ -330,12 +330,12 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 		logger.SlogDebugLocal(fmt.Sprintf("%v PortScan error: %v", domainSkip.Domain, r))
 	}
 	if err := scanner.Err(); err != nil {
-		logger.SlogWarnLocal(fmt.Sprintf("%v RustScan scanner.Err error： %v", domainSkip.Domain, err))
+		logger.SlogWarnLocal(fmt.Sprintf("%v RustScan scanner.Err error: %v", domainSkip.Domain, err))
 		return nil, nil
 	}
-	// 等待命令完成
+	// Wait for command to complete
 	if err := cmd.Wait(); err != nil {
-		logger.SlogDebugLocal(fmt.Sprintf("%v RustScan cmd.Wait error： %v", domainSkip.Domain, err))
+		logger.SlogDebugLocal(fmt.Sprintf("%v RustScan cmd.Wait error: %v", domainSkip.Domain, err))
 	}
 	end := time.Now()
 	duration := end.Sub(start)

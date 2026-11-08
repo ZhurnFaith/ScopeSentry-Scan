@@ -58,7 +58,7 @@ func NewLogger() error {
 	var err error
 	ZapLog, err = c.Build()
 	if err != nil {
-		return fmt.Errorf("log 初始化失败: %v", err)
+		return fmt.Errorf("log initialization failed: %v", err)
 	}
 
 	go processLogBuffer()
@@ -155,7 +155,7 @@ func PluginsLog(msg string, tp string, module string, id string) {
 	SendPluginLogToRedis(key, fmt.Sprintf("[%v] [%v] %v", global.AppConfig.NodeName, GetTimeNow(), msg))
 }
 
-// 修改缓冲队列相关的结构体和变量
+// Modify buffer queue structs and variables
 type logEntry struct {
 	key string
 	msg string
@@ -163,21 +163,21 @@ type logEntry struct {
 
 type logBuffer struct {
 	entries map[string][]string // key -> messages
-	count   int                 // 总消息数
+	count   int                 // Total messages
 }
 
 var (
-	logChan       = make(chan logEntry, 1000) // 缓冲通道
-	bufferSize    = 100                       // 单个key的批量写入大小
-	totalSize     = 200                       // 总消息数阈值
-	flushInterval = 30 * time.Second          // 刷新间隔
+	logChan       = make(chan logEntry, 1000) // Buffered channel
+	bufferSize    = 100                       // Batch write size per key
+	totalSize     = 200                       // Total message threshold
+	flushInterval = 30 * time.Second          // Refresh interval
 	currentBuffer = &logBuffer{
 		entries: make(map[string][]string),
 		count:   0,
 	}
 )
 
-// 处理日志缓冲
+// Handle log buffer
 func processLogBuffer() {
 	ticker := time.NewTicker(flushInterval)
 	defer ticker.Stop()
@@ -185,14 +185,14 @@ func processLogBuffer() {
 	for {
 		select {
 		case entry := <-logChan:
-			// 添加到当前缓冲区
+			// Add to current buffer
 			if _, exists := currentBuffer.entries[entry.key]; !exists {
 				currentBuffer.entries[entry.key] = make([]string, 0, bufferSize)
 			}
 			currentBuffer.entries[entry.key] = append(currentBuffer.entries[entry.key], entry.msg)
 			currentBuffer.count++
 
-			// 检查是否需要刷新
+			// Check whether refresh is needed
 			if currentBuffer.count >= totalSize {
 				flushBuffer()
 			}
@@ -204,40 +204,40 @@ func processLogBuffer() {
 	}
 }
 
-// 批量刷新缓冲
+// Batch flush buffer
 func flushBuffer() {
 	ctx := context.Background()
 
-	// 遍历每个key的消息
+	// Iterate over messages of each key
 	for key, messages := range currentBuffer.entries {
 		if len(messages) > 0 {
-			// 将[]string转换为[]interface{}
+			// Convert []string to []interface{}
 			args := make([]interface{}, len(messages))
 			for i, msg := range messages {
 				args[i] = msg
 			}
-			// 使用SADD批量添加消息
+			// Use SADD to add messages in batch
 			_, err := redis.RedisClient.AddToList(ctx, key, args...)
 			if err != nil {
-				SlogError(fmt.Sprintf("批量写入日志到Redis失败 (key: %s): %v", key, err))
+				SlogError(fmt.Sprintf("Failed to batch write logs to Redis (key: %s): %v", key, err))
 			}
 		}
 	}
 
-	// 重置缓冲区
+	// Reset buffer
 	currentBuffer = &logBuffer{
 		entries: make(map[string][]string),
 		count:   0,
 	}
 }
 
-// 修改SendPluginLogToRedis函数
+// Modify the SendPluginLogToRedis function
 func SendPluginLogToRedis(key string, msg string) {
 	select {
 	case logChan <- logEntry{key: key, msg: msg}:
-		// 成功写入缓冲
+		// Written to buffer successfully
 	default:
-		// 缓冲已满，直接写入
+		// Buffer full, write directly
 		ctx := context.Background()
 		_, err := redis.RedisClient.AddToList(ctx, key, msg)
 		if err != nil {
@@ -270,22 +270,22 @@ var timeZoneOffsets = map[string]int{
 }
 
 func GetTimeNow() string {
-	// 获取当前时间
+	// Get current time
 	timeZoneName := global.AppConfig.TimeZoneName
 
 	var location *time.Location
 	var err error
 
-	// 查找时区名称对应的偏移量
+	// Find the offset for the time zone name
 	offset, exists := timeZoneOffsets[timeZoneName]
 	if exists {
-		// 如果存在映射，使用固定时区
+		// If a mapping exists, use the fixed time zone
 		location = time.FixedZone(timeZoneName, offset)
 	} else {
-		// 如果映射不存在，尝试直接加载时区名称
+		// If no mapping exists, try loading the time zone name directly
 		location, err = time.LoadLocation(timeZoneName)
 		if err != nil {
-			// 如果加载失败，使用系统默认时区
+			// If loading fails, use the system default time zone
 			fmt.Printf("Time zone not found: %s, using system default time zone\n", timeZoneName)
 			location = time.Local
 		}

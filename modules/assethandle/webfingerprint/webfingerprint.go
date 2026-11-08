@@ -106,7 +106,7 @@ func (p *Plugin) SetParameter(args string) {
 func (p *Plugin) Log(msg string, tp ...string) {
 	var logTp string
 	if len(tp) > 0 {
-		logTp = tp[0] // 使用传入的参数
+		logTp = tp[0] // Use the parameters passed in
 	} else {
 		logTp = "i"
 	}
@@ -120,10 +120,10 @@ func (p *Plugin) GetParameter() string {
 func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 	httpResult, ok := input.(*types.AssetHttp)
 	if !ok {
-		// 说明不是http的资产，直接返回
+		// Means it is not an http asset, return directly
 		return nil, nil
 	}
-	// 获取 ACMatcher 引用，避免在函数执行过程中 global.WebFingers 被修改
+	// Get the ACMatcher reference so global.WebFingers is not modified while the function runs
 	if global.WebFingers == nil || global.WebFingers.ACMatcher == nil {
 		logger.SlogErrorLocal("WebFinger ACMatcher is nil")
 		return nil, nil
@@ -131,11 +131,11 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 	acMatcher := global.WebFingers.ACMatcher
 	var mu sync.Mutex
 	var matchFingers = []*types.Fingerprint{}
-	// 新版本
-	// 使用ac自动机进行预匹配
+	// New version
+	// Use Aho-Corasick for pre-matching
 	acFingers := AcRun(httpResult.Title, httpResult.RawHeaders, httpResult.ResponseBody)
 	matchFingers = append(matchFingers, acFingers...)
-	// 增加无法使用ac自动机的指纹
+	// Add fingerprints that cannot use Aho-Corasick
 	matchFingers = append(matchFingers, acMatcher.NonACFingerprints...)
 
 	for _, fingerprint := range matchFingers {
@@ -173,15 +173,15 @@ func (p *Plugin) Clone() interfaces.Plugin {
 
 func popLastTwoBool(slice []bool) (bool, bool, []bool) {
 	if len(slice) < 2 {
-		return false, false, slice // 如果切片长度小于2，直接返回原切片
+		return false, false, slice // If slice length is less than 2, return the original slice
 	}
 
-	// 获取最后两个元素
+	// Get the last two elements
 	lastIndex := len(slice) - 1
 	last := slice[lastIndex]
 	secondLast := slice[lastIndex-1]
 
-	// 使用切片操作去除最后两个元素
+	// Remove the last two elements with slicing
 	slice = slice[:lastIndex-1]
 
 	return secondLast, last, slice

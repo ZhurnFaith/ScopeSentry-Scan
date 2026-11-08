@@ -29,19 +29,19 @@ type proxyRequest struct {
 
 var ProxyRequests *proxyRequest
 
-// InitializeProxyRequestsPool 初始化代理请求的管理
+// InitializeProxyRequestsPool initialize proxy request management
 func InitializeProxyRequestsPool() {
 	ProxyRequestsPool = make(map[string]*ProxyRequest)
 	ProxyRequests = &proxyRequest{}
 }
 
-// CreateClientWithProxy 创建一个带代理的HTTP客户端
+// CreateClientWithProxy create an HTTP client with proxy
 func CreateClientWithProxy(proxyAddr string) (*fasthttp.Client, error) {
 	tlsConfig := &tls.Config{
-		InsecureSkipVerify: true, // 不验证证书
+		InsecureSkipVerify: true, // Skip certificate verification
 	}
 
-	// 通过代理设置 HTTP 客户端
+	// Set up HTTP client through proxy
 	client := &fasthttp.Client{
 		ReadTimeout:                   time.Second * 10,
 		WriteTimeout:                  time.Second * 10,
@@ -53,7 +53,7 @@ func CreateClientWithProxy(proxyAddr string) (*fasthttp.Client, error) {
 		ReadBufferSize:                4 * 1024 * 1024,
 		MaxResponseBodySize:           10 * 1024 * 1024,
 		Dial: func(addr string) (net.Conn, error) {
-			// 创建代理的连接
+			// Create proxied connection
 			return net.Dial("tcp", proxyAddr)
 		},
 	}
@@ -61,20 +61,20 @@ func CreateClientWithProxy(proxyAddr string) (*fasthttp.Client, error) {
 	return client, nil
 }
 
-// GetProxyClient 根据代理地址获取客户端，若没有则新建
+// GetProxyClient get client by proxy address, create one if none exists
 func GetProxyClient(proxyAddr string) (*fasthttp.Client, error) {
-	// 如果该代理客户端已经创建过，直接返回
+	// If the client for this proxy was already created, return it
 	if proxyRequest, exists := ProxyRequestsPool[proxyAddr]; exists {
 		return proxyRequest.Client, nil
 	}
 
-	// 创建新客户端
+	// Create new client
 	client, err := CreateClientWithProxy(proxyAddr)
 	if err != nil {
-		return nil, fmt.Errorf("创建带代理的客户端失败: %v", err)
+		return nil, fmt.Errorf("Failed to create client with proxy: %v", err)
 	}
 
-	// 存储该代理和对应的客户端
+	// Store this proxy and its client
 	ProxyRequestsPool[proxyAddr] = &ProxyRequest{
 		ProxyAddr: proxyAddr,
 		Client:    client,
@@ -88,7 +88,7 @@ func (r *proxyRequest) HttpGetProxy(uri string, proxyAddr string) (types.HttpRes
 		return types.HttpResponse{}, err
 	}
 	req, resp := fasthttp.AcquireRequest(), fasthttp.AcquireResponse()
-	// 最后需要归还req、resp到池中
+	// Finally req and resp must be returned to the pool
 	defer func() {
 		fasthttp.ReleaseRequest(req)
 		fasthttp.ReleaseResponse(resp)
@@ -101,10 +101,10 @@ func (r *proxyRequest) HttpGetProxy(uri string, proxyAddr string) (types.HttpRes
 	}
 	tmp := types.HttpResponse{}
 	tmp.Url = uri
-	// 定义最大响应体大小 (10MB)
+	// Define max response body size (10MB)
 	const maxBodySize = 10 * 1024 * 1024
 
-	// 截断 Body
+	// Truncate Body
 	//body := resp.Body()
 	//if len(body) > maxBodySize {
 	//	body = body[:maxBodySize]
@@ -133,7 +133,7 @@ func (r *proxyRequest) HttpGetByteProxy(uri string, proxyAddr string) ([]byte, e
 		return []byte{}, err
 	}
 	req, resp := fasthttp.AcquireRequest(), fasthttp.AcquireResponse()
-	// 最后需要归还req、resp到池中
+	// Finally req and resp must be returned to the pool
 	defer func() {
 		fasthttp.ReleaseRequest(req)
 		fasthttp.ReleaseResponse(resp)
@@ -176,7 +176,7 @@ func (r *proxyRequest) HttpGetWithCustomHeaderProxy(uri string, customHeaders []
 		return types.HttpResponse{}, err
 	}
 	req, resp := fasthttp.AcquireRequest(), fasthttp.AcquireResponse()
-	// 最后需要归还req、resp到池中
+	// Finally req and resp must be returned to the pool
 	defer func() {
 		fasthttp.ReleaseRequest(req)
 		fasthttp.ReleaseResponse(resp)
@@ -185,7 +185,7 @@ func (r *proxyRequest) HttpGetWithCustomHeaderProxy(uri string, customHeaders []
 	req.Header.SetMethod(fasthttp.MethodGet)
 	req.SetRequestURI(uri)
 
-	// 设置自定义 headers
+	// Set custom headers
 	for _, header := range customHeaders {
 		parts := strings.SplitN(header, ":", 2)
 		if len(parts) == 2 {
@@ -198,10 +198,10 @@ func (r *proxyRequest) HttpGetWithCustomHeaderProxy(uri string, customHeaders []
 	}
 	tmp := types.HttpResponse{}
 	tmp.Url = uri
-	// 定义最大响应体大小 (100KB)
+	// Define max response body size (100KB)
 	const maxBodySize = 4 * 1024 * 1024
 
-	// 截断 Body
+	// Truncate Body
 	body := resp.Body()
 	if len(body) > maxBodySize {
 		body = body[:maxBodySize]
@@ -231,7 +231,7 @@ func (r *proxyRequest) HttpGetByteWithCustomHeaderProxy(uri string, customHeader
 		return make([]byte, 0), err
 	}
 	req, resp := fasthttp.AcquireRequest(), fasthttp.AcquireResponse()
-	// 最后需要归还req、resp到池中
+	// Finally req and resp must be returned to the pool
 	defer func() {
 		fasthttp.ReleaseRequest(req)
 		fasthttp.ReleaseResponse(resp)
@@ -240,7 +240,7 @@ func (r *proxyRequest) HttpGetByteWithCustomHeaderProxy(uri string, customHeader
 	req.Header.SetMethod(fasthttp.MethodGet)
 	req.SetRequestURI(uri)
 
-	// 设置自定义 headers
+	// Set custom headers
 	for _, header := range customHeaders {
 		parts := strings.SplitN(header, ":", 2)
 		if len(parts) == 2 {
@@ -268,7 +268,7 @@ func (r *proxyRequest) HttpPostWithCustomHeaderProxy(uri string, requestBody []b
 	req.Header.SetMethod(fasthttp.MethodPost)
 	req.SetRequestURI(uri)
 
-	// 设置自定义 headers
+	// Set custom headers
 	for _, header := range customHeaders {
 		parts := strings.SplitN(header, ":", 2)
 		if len(parts) == 2 {
@@ -298,16 +298,16 @@ func (r *proxyRequest) HttpGetNoResProxy(uri string, proxyAddr string) error {
 		fasthttp.ReleaseResponse(resp)
 	}()
 
-	// 设置请求 URI
+	// Set request URI
 	req.SetRequestURI(uri)
 
 	req.Header.SetMethod(fasthttp.MethodGet)
 
-	// 发送请求
+	// Send request
 	if err := client.Do(req, resp); err != nil {
 		return err
 	}
-	// 直接丢弃响应体（或者关闭它）
+	// Discard the response body directly (or close it)
 	resp.Reset()
 	return nil
 }
@@ -347,11 +347,11 @@ func (r *proxyRequest) HttpGetNoResWithCustomHeaderProxy(uri string, customHeade
 		fasthttp.ReleaseResponse(resp)
 	}()
 
-	// 设置请求 URI
+	// Set request URI
 	req.SetRequestURI(uri)
 	req.Header.SetMethod(fasthttp.MethodGet)
 
-	// 设置自定义 headers
+	// Set custom headers
 	for _, header := range customHeaders {
 		parts := strings.SplitN(header, ":", 2)
 		if len(parts) == 2 {
@@ -359,11 +359,11 @@ func (r *proxyRequest) HttpGetNoResWithCustomHeaderProxy(uri string, customHeade
 		}
 	}
 
-	// 发送请求
+	// Send request
 	if err := client.Do(req, resp); err != nil {
 		return err
 	}
-	// 直接丢弃响应体（或者关闭它）
+	// Discard the response body directly (or close it)
 	resp.Reset()
 	return nil
 }
@@ -381,7 +381,7 @@ func (r *proxyRequest) HttpPostNoResWithCustomHeaderProxy(uri string, requestBod
 	req.Header.SetMethod(fasthttp.MethodPost)
 	req.SetRequestURI(uri)
 
-	// 设置自定义 headers
+	// Set custom headers
 	for _, header := range customHeaders {
 		parts := strings.SplitN(header, ":", 2)
 		if len(parts) == 2 {

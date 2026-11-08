@@ -29,7 +29,7 @@ func Bar(s string) string {
 
 func main() {
 	logger.NewLogger()
-	// 获取可执行文件的目录
+	// Get executable directory
 	execPath, err := os.Executable()
 	if err != nil {
 		panic(err)
@@ -37,36 +37,36 @@ func main() {
 	execDir := filepath.Dir(execPath)
 	fmt.Printf("Executable directory: %s\n", execDir)
 
-	// 设置 GOPATH 环境变量
+	// Set GOPATH environment variable
 	goPath := execDir
 
-	// 初始化 yaegi 解释器
+	// Initialize yaegi interpreter
 	interp := interp.New(interp.Options{
-		GoPath: goPath, // 设置 GoPath 为环境变量中的 GOPATH
+		GoPath: goPath, // Set GoPath to the one from the environment variables GOPATH
 	})
 
-	// 加载标准库和符号
+	// Load standard library and symbols
 	interp.Use(stdlib.Symbols)
 	interp.Use(symbols.Symbols)
 
-	// 加载插件
+	// Load plugin
 	pluginPath := filepath.Join(execDir, "plugins", "demo.go")
-	fmt.Printf("Loading plugin from: %s\n", pluginPath) // 打印插件路径以确认
+	fmt.Printf("Loading plugin from: %s\n", pluginPath) // Print plugin path to confirm
 	_, err = interp.EvalPath(pluginPath)
 	if err != nil {
 		panic(err)
 	}
 
-	// 获取 foo.Bar 函数
+	// Get foo.Bar function
 	v, err := interp.Eval("foo.Bar")
 	if err != nil {
 		panic(err)
 	}
 
-	// 将值转换为函数
+	// Convert value to function
 	bar := v.Interface().(func(interface{}) string)
 
-	// 调用 Bar 函数
+	// Call Bar function
 	r := bar("ddddd")
-	fmt.Println(r) // 输出: Kung-Foo
+	fmt.Println(r) // Output: Kung-Foo
 }

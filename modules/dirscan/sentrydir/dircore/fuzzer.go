@@ -42,7 +42,7 @@ func (f *Fuzzer) Start() {
 	semaphore := make(chan struct{}, f.Options.Thread)
 	flag := 0
 	var mu sync.Mutex
-	file, err := os.Open(f.Dictionary) // 打开文件
+	file, err := os.Open(f.Dictionary) // Open file
 	if err != nil {
 		logger.SlogError(fmt.Sprintf("Sentrydir error open dictionary file:%v", err))
 		return
@@ -174,7 +174,7 @@ func (f *Fuzzer) GetScannersFor(path string) []*Scanner {
 func (f *Fuzzer) IsExcluded(response types.HttpResponse) bool {
 	index := sort.SearchInts(f.Options.IncludeStatusCodes, response.StatusCode)
 
-	// 判断目标字符串是否在数组中
+	// Check whether target string is in the array
 	if index < len(f.Options.IncludeStatusCodes) && f.Options.IncludeStatusCodes[index] == response.StatusCode {
 		return false
 	} else {

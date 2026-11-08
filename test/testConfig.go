@@ -29,19 +29,19 @@ func main() {
 
 	}
 
-	// 创建一个Config对象，用于存储解析后的配置
+	// Create a Config object to hold the parsed configuration
 	var config Config
 
-	// 使用yaml库解析YAML内容到Config对象
+	// Parse YAML content into the Config object with the yaml library
 	err = yaml.Unmarshal(yamlFile, &config)
 	if err != nil {
 
 	}
 
-	// 打印解析后的配置
+	// Print parsed configuration
 	fmt.Printf("Config: %+v\n", config)
 
-	// 遍历规则并打印每个规则的信息
+	// Iterate over rules and print each rule's info
 	for _, rule := range config.Rules {
 		fmt.Printf("Rule ID: %s, Enabled: %t\n", rule.ID, rule.Enabled)
 	}

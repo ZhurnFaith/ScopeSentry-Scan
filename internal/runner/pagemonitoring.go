@@ -24,10 +24,10 @@ import (
 func PageMonitoringRunner(targets []string) {
 	pool, err := ants.NewPool(30)
 	if err != nil {
-		logger.SlogErrorLocal(fmt.Sprintf("创建池失败: %v", err))
+		logger.SlogErrorLocal(fmt.Sprintf("Failed to create pool: %v", err))
 		return
 	}
-	defer pool.Release() // 确保池被释放
+	defer pool.Release() // Ensure the pool is released
 	var wg sync.WaitGroup
 	for _, target := range targets {
 		wg.Add(1)
@@ -42,7 +42,7 @@ func PageMonitoringRunner(targets []string) {
 			Handler(pageMonitResultCopy, &wg)
 		})
 		if err != nil {
-			logger.SlogWarnLocal(fmt.Sprintf("任务提交失败: %v", err))
+			logger.SlogWarnLocal(fmt.Sprintf("Task submission failed: %v", err))
 		}
 	}
 	time.Sleep(3 * time.Second)
@@ -84,9 +84,9 @@ func Handler(pageMonitResult types.PageMonit, wg *sync.WaitGroup) {
 		mongodb.MongodbClient.Upsert("PageMonitoringBody", bson.M{"md5": pageMonitResult.Md5}, bson.M{"$set": bson.M{"content": []string{response.Body}}})
 		return
 	}
-	// 如果状态码相同，比较响应体hash是否相同，不同则计算两个响应体的相似度，记录相似度的值
-	// 并且判断 响应体hash是一个还是两个，如果是一个，那直接加入hash 存入body
-	// 如果是两个，那么删除第一个hash和对应的body，增加第二个hash和对应的body， 这里考虑一下存储body是使用body的hash还是url的hash
+	// If status codes are equal, compare response body hashes; if different, compute and record the similarity of the two bodies
+	// And check whether there are one or two response body hashes; if one, add the hash directly and store it body
+	// If there are two, delete the first hash and its body and add the second hash and its body; consider whether to store the body by its hash or by url hash
 	if pageMonitResult.StatusCode[len(pageMonitResult.StatusCode)-1] == response.StatusCode {
 		if response.StatusCode == 0 {
 			return
@@ -120,7 +120,7 @@ func Handler(pageMonitResult types.PageMonit, wg *sync.WaitGroup) {
 			}})
 		}
 	} else {
-		// 状态码不相同，记录状态码
+		// Status codes differ, record status code
 		if len(pageMonitResult.StatusCode) == 2 {
 			pageMonitResult.StatusCode = pageMonitResult.StatusCode[1:]
 		}

@@ -63,7 +63,7 @@ func (p *Plugin) GetTaskId() string {
 func (p *Plugin) Log(msg string, tp ...string) {
 	var logTp string
 	if len(tp) > 0 {
-		logTp = tp[0] // 使用传入的参数
+		logTp = tp[0] // Use the parameters passed in
 	} else {
 		logTp = "i"
 	}
@@ -129,17 +129,17 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 	start := time.Now()
 	p.Log(fmt.Sprintf("scan terget begin: %v", data.URL))
 
-	// 获取上下文
+	// Get context
 	ctx := contextmanager.GlobalContextManagers.GetContext(p.GetTaskId())
 
 	resultHandle := func(response types.HttpResponse) {
-		// 检查上下文是否已取消
+		// Check whether context is canceled
 		select {
 		case <-ctx.Done():
-			// 上下文已取消，直接返回
+			// Context canceled, return directly
 			return
 		default:
-			// 上下文未取消，继续执行后续逻辑
+			// Context not canceled, continue with subsequent logic
 			var result types.DirResult
 			result.Url = response.Url
 			result.Length = response.ContentLength

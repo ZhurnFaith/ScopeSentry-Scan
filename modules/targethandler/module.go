@@ -48,7 +48,7 @@ func (r *Runner) ModuleRun() error {
 	var allPluginWg sync.WaitGroup
 	var resultWg sync.WaitGroup
 	var nextModuleRun sync.WaitGroup
-	// 创建一个共享的 result 通道
+	// Create a shared result channel
 	resultChan := make(chan interface{}, 200)
 	go func() {
 		nextModuleRun.Add(1)
@@ -58,7 +58,7 @@ func (r *Runner) ModuleRun() error {
 			logger.SlogError(fmt.Sprintf("Next module run error: %v", err))
 		}
 	}()
-	// 结果处理 goroutine，异步读取插件的结果
+	// Result handling goroutine, reads plugin results asynchronously
 	resultWg.Add(1)
 	go func() {
 		defer resultWg.Done()
@@ -70,20 +70,20 @@ func (r *Runner) ModuleRun() error {
 					r.NextModule.CloseInput()
 					return
 				}
-				// 处理每个插件的结果
-				// 对目标的输出进行去重，防止多个插件返回相同的结果
+				// Handle each plugin's result
+				// Deduplicate target output so multiple plugins do not return the same result
 				target, ok := result.(string)
 				if !ok {
 					r.NextModule.GetInput() <- result
 				} else {
 					if r.Option.IsRestart {
-						// 如果是重启的不进行去重
+						// No deduplication on restart
 						r.NextModule.GetInput() <- result
 					} else {
 						key := "duplicates:" + r.Option.ID + ":target:" + target
 						flag := results.Duplicate.DuplicateLocalCache(key)
 						if flag {
-							// 本地缓存中不存在，则没有重复，发到下个模块
+							// Not in local cache, so not a duplicate, send to the next module
 							logger.SlogInfoLocal(fmt.Sprintf("%v module target %v result: %v", r.GetName(), r.Option.Target, result))
 							r.NextModule.GetInput() <- result
 						}
@@ -105,14 +105,14 @@ func (r *Runner) ModuleRun() error {
 				close(resultChan)
 				resultWg.Wait()
 				r.Option.ModuleRunWg.Done()
-				doneCalled = true // 标记已调用 Done
+				doneCalled = true // Mark as called Done
 			}
 			nextModuleRun.Wait()
 			return nil
 		case data, ok := <-r.Input:
 			if !ok {
 				time.Sleep(3 * time.Second)
-				// 等待所有插件运行完毕
+				// Wait for all plugins to finish
 				allPluginWg.Wait()
 				if firstData {
 					end = time.Now()
@@ -123,7 +123,7 @@ func (r *Runner) ModuleRun() error {
 					close(resultChan)
 					resultWg.Wait()
 					r.Option.ModuleRunWg.Done()
-					doneCalled = true // 标记已调用 Done
+					doneCalled = true // Mark as called Done
 				}
 				logger.SlogInfoLocal(fmt.Sprintf("module %v target %v close resultChan", r.GetName(), r.Option.Target))
 				nextModuleRun.Wait()
@@ -142,7 +142,7 @@ func (r *Runner) ModuleRun() error {
 			allPluginWg.Add(1)
 			go func(data interface{}) {
 				defer allPluginWg.Done()
-				// 处理输入数据
+				// Process input data
 				for _, pluginId := range r.Option.TargetHandler {
 					var plgWg sync.WaitGroup
 					plg, flag := plugins.GlobalPluginManager.GetPlugin(r.GetName(), pluginId)

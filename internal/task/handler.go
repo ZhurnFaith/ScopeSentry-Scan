@@ -43,36 +43,36 @@ func RunPebbleTarget(runnerOption options.TaskOptions) {
 	}
 	for idTarget, _ := range targets {
 		wg.Add(1)
-		// 创建 runnerOption 的副本
+		// Create a copy of runnerOption
 		optionCopy := runnerOption
 		target := strings.SplitN(idTarget, ":", 2)
 		optionCopy.Target = target[1]
-		// 使用局部变量创建闭包
+		// Create closure with local variable
 		taskFunc := func(op options.TaskOptions) func() {
 			return func() {
 				defer wg.Done()
 				select {
 				case <-contextmanager.GlobalContextManagers.GetContext(op.ID).Done():
-					// 任务取消直接返回
+					// Return directly if task canceled
 					return
 				default:
 					err := runner.Run(op)
 					if err != nil {
-						// 说明该任务取消了，直接返回不进行删除目标
+						// The task was canceled, return without deleting the target
 						return
 					} else {
-						// 目标运行完毕删除目标
+						// Delete target after it finishes running
 						DeletePebbleTarget(pebbledb.PebbleStore, []byte(op.ID+":"+op.Target))
 					}
 				}
 			}
 		}(optionCopy)
 
-		// 提交任务
+		// Submit task
 		err := pool.PoolManage.SubmitTask("task", taskFunc)
 		if err != nil {
 			logger.SlogError(fmt.Sprintf("task pool error: %v", err))
-			// 如果提交任务失败，手动减少计数
+			// If task submission fails, decrement the counter manually
 			wg.Done()
 		}
 	}
@@ -81,7 +81,7 @@ func RunPebbleTarget(runnerOption options.TaskOptions) {
 }
 
 func InitTaskOption(runnerOption options.TaskOptions) {
-	// 初始化httpx
+	// Initialize httpx
 	parameter, _ := utils.Tools.GetParameter(runnerOption.Parameters, "AssetMapping", "3a0d994a12305cb15a5cb7104d819623")
 	initHttpx(parameter)
 }

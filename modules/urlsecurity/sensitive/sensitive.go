@@ -61,7 +61,7 @@ func (p *Plugin) GetTaskId() string {
 func (p *Plugin) Log(msg string, tp ...string) {
 	var logTp string
 	if len(tp) > 0 {
-		logTp = tp[0] // 使用传入的参数
+		logTp = tp[0] // Use the parameters passed in
 	} else {
 		logTp = "i"
 	}
@@ -132,10 +132,10 @@ func newMatchCollector() *matchCollector {
 	}
 }
 
-// Add 方法使用锁保护
+// Add method protected by lock
 func (mc *matchCollector) Add(ruleName, match string) {
-	mc.mu.Lock()         // 上锁
-	defer mc.mu.Unlock() // 解锁
+	mc.mu.Lock()         // Lock
+	defer mc.mu.Unlock() // Unlock
 
 	existList := mc.matchMap[ruleName]
 	for _, m := range existList {
@@ -179,7 +179,7 @@ func (p *Plugin) Execute(input interface{}) (interface{}, error) {
 	//var start time.Time
 	//var end time.Time
 	//start = time.Now()
-	// 检查body是否在当前任务已经检测过
+	// Check whether body was already checked in the current task
 	respMd5 := utils.Tools.HashXX64String(data.Body)
 	duplicateFlag := results.Duplicate.SensitiveBody(respMd5, p.TaskId, "sens")
 	ctx := contextmanager.GlobalContextManagers.GetContext(p.GetTaskId())
@@ -309,13 +309,13 @@ func findMatchesInChunk(regex *regexp2.Regexp, text string) ([]string, error) {
 }
 
 func uniqueStrings(input []string) []string {
-	// 创建一个映射来记录出现过的字符串
+	// Create a map to record seen strings
 	seen := make(map[string]bool)
 	var result []string
 
-	// 遍历输入的切片
+	// Iterate over input slice
 	for _, str := range input {
-		// 如果该字符串还未出现，则添加到结果切片和映射中
+		// If the string has not been seen, add it to the result slice and map
 		if !seen[str] {
 			seen[str] = true
 			result = append(result, str)

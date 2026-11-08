@@ -22,7 +22,7 @@ import (
 	"strings"
 )
 
-// PluginInfo 存储插件信息的结构体
+// PluginInfo struct storing plugin info
 
 func InstallPlugin(id string) {
 	var result PluginInfo

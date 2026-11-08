@@ -28,26 +28,26 @@ import (
 func GetCustomPlugin() ([]interfaces.Plugin, error) {
 	var plugins []interfaces.Plugin
 	utils.Tools.EnsureDir(global.PluginDir)
-	// 使用 WalkDir 遍历 global.PluginDir 目录
+	// Walk the global.PluginDir directory with WalkDir
 	err := filepath.WalkDir(global.PluginDir, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			log.Error(fmt.Sprintf("Error walking path", path, ":", err))
 			return nil
 		}
 
-		// 如果是目录，则获取其名字并遍历该子目录
+		// If it is a directory, get its name and traverse it
 		if d.IsDir() {
 		} else {
 			dir := filepath.Dir(path)
 			moduleName := filepath.Base(dir)
 
 			filename := filepath.Base(path)
-			extension := filepath.Ext(filename)              // 获取文件的扩展名
-			plgId := strings.TrimSuffix(filename, extension) // 去掉扩展名
+			extension := filepath.Ext(filename)              // Get file extension
+			plgId := strings.TrimSuffix(filename, extension) // Strip extension
 			plugin, err := LoadCustomPlugin(path, moduleName, plgId)
 			if err != nil {
 				log.Error(fmt.Sprintf("module %v plg load error: %v", moduleName, plgId, err))
-				return nil // 返回 nil，继续遍历
+				return nil // Return nil, continue iterating
 			}
 			plugins = append(plugins, plugin)
 		}
@@ -55,7 +55,7 @@ func GetCustomPlugin() ([]interfaces.Plugin, error) {
 	})
 
 	if err != nil {
-		// 遍历过程中如果有错误，返回错误
+		// If there is an error during iteration, return it
 		return nil, fmt.Errorf("error walking the path %v: %v", global.PluginDir, err)
 	}
 
@@ -64,9 +64,9 @@ func GetCustomPlugin() ([]interfaces.Plugin, error) {
 
 func LoadCustomPlugin(path string, modlue string, plgId string) (interfaces.Plugin, error) {
 	logger.SlogInfoLocal(fmt.Sprintf("Load custom plugin: %v", path))
-	// 初始化 yaegi 解释器
+	// Initialize yaegi interpreter
 	interp := interp.New(interp.Options{})
-	// 加载标准库和符号
+	// Load standard library and symbols
 	err := interp.Use(stdlib.Symbols)
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func LoadCustomPlugin(path string, modlue string, plgId string) (interfaces.Plug
 	if err != nil {
 		return nil, err
 	}
-	// 获取Execute
+	// Get Execute
 	v, err := interp.Eval("plugin.Execute")
 	if err != nil {
 		return nil, err
@@ -116,9 +116,9 @@ func LoadCustomPlugin(path string, modlue string, plgId string) (interfaces.Plug
 	v, err = interp.Eval("plugin.SetCustom")
 	setCustomFunc := func(interface{}) {}
 	if err != nil {
-		// 如果方法不存在，则设置 setCustomFunc 为 nil
+		// If the method does not exist, set setCustomFunc to nil
 	} else {
-		// 如果方法存在，则获取该函数
+		// If the method exists, get the function
 		setCustomFunc = v.Interface().(func(interface{}))
 	}
 	plg := customplugin.NewPlugin(modlue, plgId, installFunc, checkFunc, executeFunc, uninstallFunc, getNameFunc, setCustomFunc)

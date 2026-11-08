@@ -18,7 +18,7 @@ type PebbleDB struct {
 
 var PebbleStore *PebbleDB
 
-// NewPebbleDB 初始化 PebbleDB 实例
+// NewPebbleDB initialize PebbleDB instance
 func NewPebbleDB(options *pebble.Options, dbPath string) (*PebbleDB, error) {
 	db, err := pebble.Open(dbPath, options)
 	if err != nil {
@@ -27,12 +27,12 @@ func NewPebbleDB(options *pebble.Options, dbPath string) (*PebbleDB, error) {
 	return &PebbleDB{db: db}, nil
 }
 
-// Put 将键值对存入数据库
+// Put store key-value pair in database
 func (p *PebbleDB) Put(key, value []byte) error {
 	return p.db.Set(key, value, pebble.Sync)
 }
 
-// Get 从数据库中获取指定键的值
+// Get get the value of the specified key from the database
 func (p *PebbleDB) Get(key []byte) ([]byte, error) {
 	value, closer, err := p.db.Get(key)
 	if err != nil {
@@ -42,17 +42,17 @@ func (p *PebbleDB) Get(key []byte) ([]byte, error) {
 	return value, nil
 }
 
-// Delete 删除数据库中的键
+// Delete delete key from database
 func (p *PebbleDB) Delete(key []byte) error {
 	return p.db.Delete(key, pebble.Sync)
 }
 
-// Close 关闭数据库连接
+// Close close database connection
 func (p *PebbleDB) Close() error {
 	return p.db.Close()
 }
 
-// BatchWrite 批量写入键值对
+// BatchWrite batch write key-value pairs
 func (p *PebbleDB) BatchWrite(pairs map[string]string) error {
 	batch := p.db.NewBatch()
 	defer batch.Close()
@@ -70,20 +70,20 @@ func (p *PebbleDB) BatchWrite(pairs map[string]string) error {
 	return nil
 }
 
-// Compact 强制压缩数据库，释放空间
+// Compact force database compaction to free space
 func (p *PebbleDB) Compact() error {
-	start := []byte("")               // 从最开始位置压缩
-	end := []byte("zzzzzzzzzzzzzzzz") // 直到最大键的后面
-	// 调用 Compact 方法进行压缩
+	start := []byte("")               // Compress from the beginning
+	end := []byte("zzzzzzzzzzzzzzzz") // Until after the max key
+	// Call the Compact method to compact
 	return p.db.Compact(start, end, true)
 }
 
 func (p *PebbleDB) GetKeysWithPrefix(prefix string) (map[string][]byte, error) {
 	result := make(map[string][]byte)
 
-	// 创建迭代器并设置范围
-	lowerBound := []byte(prefix)          // 设置下界为指定前缀
-	upperBound := []byte(prefix + "\xff") // 设置上界为指定前缀后加上一个字符
+	// Create iterator and set range
+	lowerBound := []byte(prefix)          // Set lower bound to the specified prefix
+	upperBound := []byte(prefix + "\xff") // Set upper bound to the specified prefix plus one character
 
 	iter, _ := p.db.NewIter(&pebble.IterOptions{
 		LowerBound: lowerBound,
@@ -94,9 +94,9 @@ func (p *PebbleDB) GetKeysWithPrefix(prefix string) (map[string][]byte, error) {
 		if err != nil {
 			fmt.Printf("GetKeysWithPrefix error: %v", err)
 		}
-	}(iter) // 确保在函数结束时关闭迭代器
+	}(iter) // Ensure the iterator is closed when the function ends
 
-	// 遍历所有符合条件的键
+	// Iterate over all matching keys
 	for iter.First(); iter.Valid(); iter.Next() {
 		key := iter.Key()
 		value := iter.Value()

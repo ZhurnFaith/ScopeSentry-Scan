@@ -19,7 +19,7 @@ type Request struct {
 
 func (r *Request) Request(path string) (types.HttpResponse, error) {
 	if len(path) > 0 && path[0] == '/' {
-		path = path[1:] // 去掉前边的"/"
+		path = path[1:] // Remove leading"/"
 	}
 	uri := r.Url + path
 	response, err := utils.Requests.HttpGet(uri)

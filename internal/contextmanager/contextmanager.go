@@ -14,18 +14,18 @@ import (
 	"sync"
 )
 
-// ContextManager 管理多个上下文的结构体
+// ContextManager struct managing multiple contexts
 type ContextManager struct {
 	mu         sync.Mutex
-	contexts   map[string]context.Context    // 存储上下文
-	cancels    map[string]context.CancelFunc // 存储取消函数
-	waitGroups map[string]*sync.WaitGroup    // 存储每个任务的 WaitGroup
+	contexts   map[string]context.Context    // Store context
+	cancels    map[string]context.CancelFunc // Store cancel function
+	waitGroups map[string]*sync.WaitGroup    // Store per task WaitGroup
 }
 
 // Global map to store all ContextManagers by their IDs
 var GlobalContextManagers *ContextManager
 
-// NewContextManager 创建一个新的上下文管理器
+// NewContextManager create a new context manager
 func NewContextManager() {
 	GlobalContextManagers = &ContextManager{
 		contexts:   make(map[string]context.Context),
@@ -34,26 +34,26 @@ func NewContextManager() {
 	}
 }
 
-// AddContext 创建并添加一个新的上下文
+// AddContext create and add a new context
 func (cm *ContextManager) AddContext(taskID string) {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
 
-	// 如果 taskID 已经存在，跳过添加
+	// If taskID already exists, skip adding
 	if _, exists := cm.contexts[taskID]; exists {
-		// 这里可以选择直接返回，或者执行其他处理逻辑
+		// You can return directly here or run other handling logic
 		return
 	}
-	// 创建新的上下文及其取消函数
+	// Create a new context and its cancel function
 	ctx, cancel := context.WithCancel(context.Background())
 
-	// 添加到管理器
+	// Add to manager
 	cm.contexts[taskID] = ctx
 	cm.cancels[taskID] = cancel
 	cm.waitGroups[taskID] = &sync.WaitGroup{}
 }
 
-// CancelContext 取消指定任务的上下文
+// CancelContext cancel context of the specified task
 func (cm *ContextManager) CancelContext(taskID string) {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
@@ -64,7 +64,7 @@ func (cm *ContextManager) CancelContext(taskID string) {
 	}
 }
 
-// CancelAllContexts 取消所有上下文
+// CancelAllContexts cancel all contexts
 func (cm *ContextManager) CancelAllContexts() {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
@@ -74,7 +74,7 @@ func (cm *ContextManager) CancelAllContexts() {
 	}
 }
 
-// WaitForAll 等待所有上下文相关的任务完成
+// WaitForAll wait for all context-related tasks to complete
 func (cm *ContextManager) WaitForAll() {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
@@ -90,12 +90,12 @@ func (cm *ContextManager) WaitForAll() {
 	wg.Wait()
 }
 
-// DeleteContext 删除指定任务的上下文
+// DeleteContext delete context of the specified task
 func (cm *ContextManager) DeleteContext(taskID string) {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
 
-	// 删除上下文、取消函数和 WaitGroup
+	// Delete context, cancel function and WaitGroup
 	if _, ok := cm.contexts[taskID]; ok {
 		delete(cm.contexts, taskID)
 		delete(cm.cancels, taskID)
@@ -106,18 +106,18 @@ func (cm *ContextManager) DeleteContext(taskID string) {
 	}
 }
 
-// GetContext 获取指定任务的上下文
+// GetContext get context of the specified task
 func (cm *ContextManager) GetContext(taskID string) context.Context {
-	// 获取锁保护上下文读取操作
+	// Acquire lock to protect context reads
 	cm.mu.Lock()
 	ctx, exists := cm.contexts[taskID]
 	cm.mu.Unlock()
 
-	// 如果上下文不存在，则需要创建
+	// If the context does not exist, it needs to be created
 	if !exists {
-		// 创建并添加上下文时，不要在锁住的状态下调用 AddContext
+		// Do not call this while holding the lock when creating and adding a context AddContext
 		cm.AddContext(taskID)
-		// 再次获取锁来获取新创建的上下文
+		// Acquire the lock again to get the newly created context
 		cm.mu.Lock()
 		ctx = cm.contexts[taskID]
 		cm.mu.Unlock()
