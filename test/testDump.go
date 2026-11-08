@@ -7,10 +7,10 @@
 
 package main
 
-import "github.com/Autumn-27/ScopeSentry-Scan/internal/results"
+import "github.com/ZhurnFaith/ScopeSentry-Scan/internal/results"
 
 //import (
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/system"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/system"
 //)
 //
 //func main() {

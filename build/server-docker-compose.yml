@@ -2,7 +2,7 @@ version: "3.5"
 
 services:
   scope-sentry:
-    image: autumn27/scopesentry:latest
+    image: ghcr.io/zhurnfaith/scopesentry:latest
     container_name: scope-sentry
     restart: always
     ports:

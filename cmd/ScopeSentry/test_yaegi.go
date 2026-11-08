@@ -9,8 +9,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/symbols"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/logger"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/symbols"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/logger"
 	"github.com/traefik/yaegi/interp"
 	"github.com/traefik/yaegi/stdlib"
 	"os"
@@ -19,7 +19,7 @@ import (
 
 const src = `package foo
 
-import "github.com/Autumn-27/ScopeSentry-Scan/pkg/logger"
+import "github.com/ZhurnFaith/ScopeSentry-Scan/pkg/logger"
 
 func Bar(s string) string {
 	logger.SlogInfoLocal("system config load begin")

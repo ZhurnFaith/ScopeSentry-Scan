@@ -8,8 +8,8 @@ package dirrunner
 
 import (
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
-	"github.com/Autumn-27/ScopeSentry-Scan/modules/dirscan/sentrydir/dircore"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/dirscan/sentrydir/dircore"
 	"sort"
 	"strconv"
 	"strings"

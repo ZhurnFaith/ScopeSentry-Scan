@@ -10,9 +10,9 @@ package main
 //
 //import (
 //	"fmt"
-//	"github.com/Autumn-27/ScopeSentry-Scan/internal/config"
-//	"github.com/Autumn-27/ScopeSentry-Scan/modules/urlscan/wayback/source"
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/utils"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/config"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/urlscan/wayback/source"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/utils"
 //)
 //
 //func main() {

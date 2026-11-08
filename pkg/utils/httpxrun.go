@@ -9,8 +9,8 @@ package utils
 
 import (
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/logger"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/logger"
 	"github.com/projectdiscovery/httpx/runner"
 	"math"
 	"strconv"

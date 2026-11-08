@@ -3,7 +3,7 @@ package configupdater
 import (
 	"testing"
 
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
 )
 
 func TestBuildACMatcher_FingerprintWithRequestConditionFallsBackToNonAC(t *testing.T) {

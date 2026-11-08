@@ -9,7 +9,7 @@ package webfingerprint
 
 import (
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
 	"io"
 	"net/http"
 	"net/url"

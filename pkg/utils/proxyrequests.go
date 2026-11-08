@@ -10,7 +10,7 @@ package utils
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
 	"github.com/valyala/fasthttp"
 	"net"
 	"strings"

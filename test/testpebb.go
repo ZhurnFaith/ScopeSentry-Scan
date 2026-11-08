@@ -9,9 +9,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/config"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/global"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/pebbledb"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/config"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/global"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/pebbledb"
 	"path/filepath"
 )
 

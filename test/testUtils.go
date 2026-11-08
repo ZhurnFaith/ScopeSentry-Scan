@@ -9,12 +9,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/config"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/global"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/mongodb"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/redis"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/logger"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/utils"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/config"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/global"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/mongodb"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/redis"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/logger"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/utils"
 	"io/ioutil"
 	"time"
 )

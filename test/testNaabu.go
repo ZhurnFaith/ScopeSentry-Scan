@@ -8,8 +8,8 @@ package main
 
 //import (
 //	"fmt"
-//	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/portScanMode"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/portScanMode"
 //)
 //
 //func main() {

@@ -11,11 +11,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/contextmanager"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/global"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/interfaces"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/logger"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/utils"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/contextmanager"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/global"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/interfaces"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/logger"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/utils"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -137,12 +137,9 @@ func (p *Plugin) Install() error {
 	}
 	KsubdomainExecPath := filepath.Join(ksubdomainPath, path)
 	if _, err := os.Stat(KsubdomainExecPath); os.IsNotExist(err) {
-		_, err := utils.Tools.HttpGetDownloadFile(fmt.Sprintf("%v/%v/%v", "https://raw.githubusercontent.com/Autumn-27/ScopeSentry-Scan/main/tools", dir, path), KsubdomainExecPath)
+		_, err := utils.Tools.HttpGetDownloadFile(fmt.Sprintf("%v/%v/%v", "https://raw.githubusercontent.com/ZhurnFaith/ScopeSentry-Scan/main/tools", dir, path), KsubdomainExecPath)
 		if err != nil {
-			_, err = utils.Tools.HttpGetDownloadFile(fmt.Sprintf("%v/%v/%v", "https://gitee.com/constL/ScopeSentry-Scan/raw/main/tools", dir, path), KsubdomainExecPath)
-			if err != nil {
-				return err
-			}
+			return err
 		}
 		if osType == "linux" {
 			err = os.Chmod(KsubdomainExecPath, 0755)

@@ -10,8 +10,8 @@ package main
 //
 //import (
 //	"fmt"
-//	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/system"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/system"
 //	"github.com/dlclark/regexp2"
 //	"net/http"
 //	_ "net/http/pprof"

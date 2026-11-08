@@ -8,8 +8,8 @@
 package main
 
 //import (
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/scanResult"
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/system"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/scanResult"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/system"
 //)
 //
 //func main() {

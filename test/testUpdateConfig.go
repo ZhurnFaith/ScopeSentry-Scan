@@ -7,8 +7,8 @@
 package main
 
 //import (
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/mongdbClient"
-//	"github.com/Autumn-27/ScopeSentry-Scan/pkg/system"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/mongdbClient"
+//	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/system"
 //)
 //
 //func main() {

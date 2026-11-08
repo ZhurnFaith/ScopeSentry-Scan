@@ -8,7 +8,7 @@ package dircore
 
 import (
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/modules/dirscan/sentrydir/dirutils"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/modules/dirscan/sentrydir/dirutils"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 

@@ -9,8 +9,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/bigcache"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/logger"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/bigcache"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/logger"
 )
 
 func main() {

@@ -12,12 +12,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/contextmanager"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/global"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/interfaces"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/logger"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/utils"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/contextmanager"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/global"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/interfaces"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/logger"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/utils"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -148,12 +148,9 @@ func (p *Plugin) Install() error {
 	RustscanPath := filepath.Join(global.ExtDir, "rustscan")
 	RustscanExecPath := filepath.Join(RustscanPath, p.RustFileName)
 	if _, err := os.Stat(RustscanExecPath); os.IsNotExist(err) {
-		_, err := utils.Tools.HttpGetDownloadFile(fmt.Sprintf("%v/%v/%v", "https://raw.githubusercontent.com/Autumn-27/ScopeSentry-Scan/main/tools", p.RustDir, p.RustFileName), RustscanExecPath)
+		_, err := utils.Tools.HttpGetDownloadFile(fmt.Sprintf("%v/%v/%v", "https://raw.githubusercontent.com/ZhurnFaith/ScopeSentry-Scan/main/tools", p.RustDir, p.RustFileName), RustscanExecPath)
 		if err != nil {
-			_, err = utils.Tools.HttpGetDownloadFile(fmt.Sprintf("%v/%v/%v", "https://gitee.com/constL/ScopeSentry-Scan/raw/main/tools", p.RustDir, p.RustFileName), RustscanExecPath)
-			if err != nil {
-				return err
-			}
+			return err
 		}
 		if p.OsType == "linux" {
 			err = os.Chmod(RustscanExecPath, 0755)

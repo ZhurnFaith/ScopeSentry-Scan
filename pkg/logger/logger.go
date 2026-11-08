@@ -13,8 +13,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/global"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/redis"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/global"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/redis"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

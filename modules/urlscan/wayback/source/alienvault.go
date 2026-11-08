@@ -10,8 +10,8 @@ package source
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/logger"
-	"github.com/Autumn-27/ScopeSentry-Scan/pkg/utils"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/logger"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/pkg/utils"
 	"golang.org/x/net/context"
 )
 

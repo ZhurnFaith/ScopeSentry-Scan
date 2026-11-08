@@ -9,8 +9,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/configupdater"
-	"github.com/Autumn-27/ScopeSentry-Scan/internal/types"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/configupdater"
+	"github.com/ZhurnFaith/ScopeSentry-Scan/internal/types"
 	"gopkg.in/yaml.v3"
 )
 
